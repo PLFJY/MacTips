@@ -9,7 +9,6 @@ final class SettingsStore: ObservableObject {
     @Published var showCopy = true { didSet { save() } }
     @Published var showPaste = true { didSet { save() } }
     @Published var showCut = true { didSet { save() } }
-    @Published var showAnyCopy = true { didSet { save() } }
     @Published var showCapsLock = true { didSet { save() } }
     @Published var showCount = true { didSet { save() } }
     @Published var displaySeconds = 2.0 { didSet { save() } }
@@ -25,7 +24,6 @@ final class SettingsStore: ObservableObject {
         showCopy = defaults.object(forKey: "showCopy") as? Bool ?? true
         showPaste = defaults.object(forKey: "showPaste") as? Bool ?? true
         showCut = defaults.object(forKey: "showCut") as? Bool ?? true
-        showAnyCopy = defaults.object(forKey: "showAnyCopy") as? Bool ?? true
         showCapsLock = defaults.object(forKey: "showCapsLock") as? Bool ?? true
         showCount = defaults.object(forKey: "showCount") as? Bool ?? true
         displaySeconds = defaults.object(forKey: "displaySeconds") as? Double ?? 2
@@ -51,7 +49,6 @@ final class SettingsStore: ObservableObject {
         defaults.set(showCopy, forKey: "showCopy")
         defaults.set(showPaste, forKey: "showPaste")
         defaults.set(showCut, forKey: "showCut")
-        defaults.set(showAnyCopy, forKey: "showAnyCopy")
         defaults.set(showCapsLock, forKey: "showCapsLock")
         defaults.set(showCount, forKey: "showCount")
         defaults.set(displaySeconds, forKey: "displaySeconds")

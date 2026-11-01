@@ -10,8 +10,6 @@
 "settings.copy" = "显示复制提示";
 "settings.paste" = "显示粘贴提示";
 "settings.cut" = "显示剪切提示";
-"settings.anyCopy" = "检测任意来源的复制";
-"settings.anyCopy.detail" = "检测右键菜单及其他方式引起的剪贴板变化。部分应用或剪贴板管理器的自动更新可能被识别为复制。";
 "settings.count" = "显示连续操作次数";
 "settings.capsLock" = "显示大写锁定状态变化";
 "settings.inputDisclosure" = "输入监控权限用于检测 Command+C/V/X 和大写锁定。应用不会记录键入或复制的内容。";

@@ -10,8 +10,6 @@
 "settings.copy" = "Show Copy hints";
 "settings.paste" = "Show Paste hints";
 "settings.cut" = "Show Cut hints";
-"settings.anyCopy" = "Detect copies from any source";
-"settings.anyCopy.detail" = "Clipboard changes from context menus and other actions are treated as inferred copies. Some apps and clipboard managers may trigger false hints.";
 "settings.count" = "Show consecutive action count";
 "settings.capsLock" = "Show Caps Lock changes";
 "settings.inputDisclosure" = "Input Monitoring lets MacTips detect Command+C/V/X and Caps Lock. It does not record typed or copied content.";

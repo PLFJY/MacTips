@@ -29,8 +29,6 @@ struct SettingsView: View {
                 Toggle("settings.copy", isOn: $settings.showCopy)
                 Toggle("settings.paste", isOn: $settings.showPaste)
                 Toggle("settings.cut", isOn: $settings.showCut)
-                Toggle("settings.anyCopy", isOn: $settings.showAnyCopy)
-                Text("settings.anyCopy.detail").font(.footnote).foregroundStyle(.secondary)
                 Toggle("settings.count", isOn: $settings.showCount)
             }
             Section("settings.keyboard") {

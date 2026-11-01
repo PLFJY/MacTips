@@ -1,8 +1,19 @@
 import XCTest
 @testable import MacTips
 import ApplicationServices
+import AppKit
 
 final class CoreLogicTests: XCTestCase {
+    @MainActor
+    func testClipboardMonitorStopsAfterConfirmationWindow() async throws {
+        let monitor = ClipboardMonitor()
+        XCTAssertFalse(monitor.isMonitoring)
+        monitor.start(baseline: NSPasteboard.general.changeCount, at: ProcessInfo.processInfo.systemUptime)
+        XCTAssertTrue(monitor.isMonitoring)
+        try await Task.sleep(for: .seconds(1.6))
+        XCTAssertFalse(monitor.isMonitoring)
+    }
+
     func testCommandShortcutsAndModifiers() {
         let command: CGEventFlags = .maskCommand
         XCTAssertEqual(KeyboardShortcutClassifier.classify(keyCode: 8, flags: command, isRepeat: false), .copy)
@@ -18,50 +29,49 @@ final class CoreLogicTests: XCTestCase {
     func testCopyWaitsForClipboardAndExpires() {
         var correlator = ClipboardEventCorrelator(initialChangeCount: 4)
         correlator.record(.copy, changeCount: 4, at: 10)
-        XCTAssertEqual(correlator.clipboardChanged(to: 5, hasTypes: true, at: 10.1, showAnyCopy: true), [.confirmed(.copy)])
+        XCTAssertEqual(correlator.clipboardChanged(to: 5, at: 10.1), [.confirmed(.copy)])
         correlator.record(.copy, changeCount: 5, at: 20)
-        XCTAssertEqual(correlator.clipboardChanged(to: 5, hasTypes: true, at: 20.8, showAnyCopy: true), [])
+        XCTAssertEqual(correlator.clipboardChanged(to: 5, at: 20.8), [])
     }
 
     func testCutConfirmationAndPasteClassifier() {
         var correlator = ClipboardEventCorrelator(initialChangeCount: 0)
         correlator.record(.cut, changeCount: 0, at: 1)
-        XCTAssertEqual(correlator.clipboardChanged(to: 1, hasTypes: true, at: 1.1, showAnyCopy: true), [.confirmed(.cut)])
+        XCTAssertEqual(correlator.clipboardChanged(to: 1, at: 1.1), [.confirmed(.cut)])
         XCTAssertEqual(KeyboardShortcutClassifier.classify(keyCode: 9, flags: .maskCommand, isRepeat: false), .paste)
     }
 
     func testCutCanBeConfirmedAfterASlowerPoll() {
         var correlator = ClipboardEventCorrelator(initialChangeCount: 0)
         correlator.record(.cut, changeCount: 0, at: 1)
-        XCTAssertEqual(correlator.clipboardChanged(to: 1, hasTypes: true, at: 1.9, showAnyCopy: true), [.confirmed(.cut)])
-        XCTAssertEqual(correlator.clipboardChanged(to: 2, hasTypes: true, at: 2.4, showAnyCopy: true), [])
+        XCTAssertEqual(correlator.clipboardChanged(to: 1, at: 1.9), [.confirmed(.cut)])
+        XCTAssertEqual(correlator.clipboardChanged(to: 2, at: 2.4), [])
     }
 
     func testNewCutSupersedesUnconfirmedCopy() {
         var correlator = ClipboardEventCorrelator(initialChangeCount: 0)
         correlator.record(.copy, changeCount: 0, at: 1)
         correlator.record(.cut, changeCount: 0, at: 1.1)
-        XCTAssertEqual(correlator.clipboardChanged(to: 1, hasTypes: true, at: 1.2, showAnyCopy: true), [.confirmed(.cut)])
+        XCTAssertEqual(correlator.clipboardChanged(to: 1, at: 1.2), [.confirmed(.cut)])
     }
 
     func testPasteSupersedesDelayedClipboardChange() {
         var correlator = ClipboardEventCorrelator(initialChangeCount: 0)
         correlator.record(.cut, changeCount: 0, at: 1)
-        correlator.supersedeWithPaste(at: 1.1)
-        XCTAssertEqual(correlator.clipboardChanged(to: 1, hasTypes: true, at: 1.2, showAnyCopy: true), [])
+        correlator.supersedeWithPaste()
+        XCTAssertEqual(correlator.clipboardChanged(to: 1, at: 1.2), [])
         correlator.record(.copy, changeCount: 1, at: 1.3)
-        XCTAssertEqual(correlator.clipboardChanged(to: 2, hasTypes: true, at: 1.4, showAnyCopy: true), [.confirmed(.copy)])
-        correlator.supersedeWithPaste(at: 1.5)
-        XCTAssertEqual(correlator.clipboardChanged(to: 3, hasTypes: true, at: 1.8, showAnyCopy: true), [])
-        XCTAssertEqual(correlator.clipboardChanged(to: 4, hasTypes: true, at: 2.7, showAnyCopy: true), [.inferredCopy])
+        XCTAssertEqual(correlator.clipboardChanged(to: 2, at: 1.4), [.confirmed(.copy)])
+        correlator.supersedeWithPaste()
+        XCTAssertEqual(correlator.clipboardChanged(to: 3, at: 1.8), [])
+        XCTAssertEqual(correlator.clipboardChanged(to: 4, at: 2.7), [])
     }
 
-    func testInferredCopiesRespectSettingsAndMergeClipboardRewrites() {
+    func testUnsolicitedClipboardChangesDoNotProduceHints() {
         var correlator = ClipboardEventCorrelator(initialChangeCount: 1)
-        XCTAssertEqual(correlator.clipboardChanged(to: 2, hasTypes: true, at: 2, showAnyCopy: false), [])
-        XCTAssertEqual(correlator.clipboardChanged(to: 3, hasTypes: true, at: 3, showAnyCopy: true), [.inferredCopy])
-        XCTAssertEqual(correlator.clipboardChanged(to: 4, hasTypes: true, at: 3.1, showAnyCopy: true), [])
-        XCTAssertEqual(correlator.clipboardChanged(to: 5, hasTypes: false, at: 4, showAnyCopy: true), [])
+        XCTAssertEqual(correlator.clipboardChanged(to: 2, at: 2), [])
+        correlator.record(.copy, changeCount: 2, at: 3)
+        XCTAssertEqual(correlator.clipboardChanged(to: 3, at: 4.3), [])
     }
 
     func testRepeatedSameOperationCountsAndHideResets() {

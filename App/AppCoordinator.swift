@@ -27,40 +27,38 @@ final class AppCoordinator: ObservableObject {
         keyboard.onClipboardShortcut = { [weak self] intent, changeCount in
             guard let self else { return }
             self.observeCurrentClipboard()
-            self.correlator.record(intent, changeCount: changeCount,
-                                   at: ProcessInfo.processInfo.systemUptime)
+            let time = ProcessInfo.processInfo.systemUptime
+            self.correlator.record(intent, changeCount: changeCount, at: time)
+            self.clipboard.start(baseline: changeCount, at: time)
         }
         keyboard.onPaste = { [weak self] in
             guard let self else { return }
             self.observeCurrentClipboard()
-            self.correlator.supersedeWithPaste(at: ProcessInfo.processInfo.systemUptime)
+            self.clipboard.stop()
+            self.correlator.supersedeWithPaste()
             self.tips.show(.paste)
         }
         keyboard.onCapsLock = { [weak self] state in self?.tips.show(.capsLock, state: state) }
-        clipboard.onChange = { [weak self] count, hasTypes, time in
+        clipboard.onChange = { [weak self] count, time in
             guard let self else { return }
-            self.handleClipboardChange(count: count, hasTypes: hasTypes, at: time)
+            self.handleClipboardChange(count: count, at: time)
         }
         correlator = ClipboardEventCorrelator(initialChangeCount: NSPasteboard.general.changeCount)
-        clipboard.start()
         refreshPermission()
     }
 
     private var correlator: ClipboardEventCorrelator!
 
     private func observeCurrentClipboard() {
-        let board = NSPasteboard.general
-        handleClipboardChange(count: board.changeCount, hasTypes: !(board.types ?? []).isEmpty,
-                              at: ProcessInfo.processInfo.systemUptime)
+        guard !correlator.pending.isEmpty else { return }
+        handleClipboardChange(count: NSPasteboard.general.changeCount, at: ProcessInfo.processInfo.systemUptime)
     }
 
-    private func handleClipboardChange(count: Int, hasTypes: Bool, at time: TimeInterval) {
-        let outputs = correlator.clipboardChanged(to: count, hasTypes: hasTypes, at: time,
-                                                  showAnyCopy: settings.showAnyCopy && settings.showCopy)
+    private func handleClipboardChange(count: Int, at time: TimeInterval) {
+        let outputs = correlator.clipboardChanged(to: count, at: time)
         for output in outputs {
             switch output {
             case .confirmed(let kind): tips.show(kind)
-            case .inferredCopy: tips.show(.copy)
             }
         }
     }
@@ -68,7 +66,7 @@ final class AppCoordinator: ObservableObject {
     func refreshPermission() {
         permissionGranted = PermissionsManager.inputMonitoringGranted
         if permissionGranted { monitoringActive = keyboard.isRunning || keyboard.start() }
-        else { keyboard.stop(); monitoringActive = false }
+        else { keyboard.stop(); clipboard.stop(); correlator.supersedeWithPaste(); monitoringActive = false }
     }
 
     func requestPermission() {

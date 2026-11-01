@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <title>MacTips app icon</title>
+  <desc>A macOS Command key and a compact system tip card.</desc>
+
+  <!-- Full-bleed color field: keep the shape square for later Icon Composer masking. -->
+  <rect width="1024" height="1024" fill="#5652D6"/>
+
+  <!-- Quiet dimensional backdrop shapes; these can be replaced by glass materials. -->
+  <circle cx="814" cy="219" r="186" fill="#7773EA"/>
+  <circle cx="164" cy="867" r="242" fill="#4541BD"/>
+
+  <!-- Tip card -->
+  <rect x="142" y="291" width="740" height="442" rx="132" fill="#F8F8FF"/>
+  <rect x="142" y="291" width="740" height="442" rx="132" stroke="#FFFFFF" stroke-opacity="0.72" stroke-width="12"/>
+
+  <!-- Command keycap -->
+  <rect x="221" y="389" width="258" height="246" rx="76" fill="#E8E8FA"/>
+  <rect x="221" y="389" width="258" height="246" rx="76" stroke="#D0D0EA" stroke-width="10"/>
+  <text x="350" y="590" text-anchor="middle" fill="#45428F"
+        font-family="SF Pro Display, Helvetica Neue, sans-serif" font-size="204" font-weight="500">⌘</text>
+
+  <!-- Tip lines -->
+  <rect x="544" y="417" width="205" height="38" rx="19" fill="#45428F"/>
+  <rect x="544" y="493" width="142" height="30" rx="15" fill="#A8A7CE"/>
+  <rect x="544" y="551" width="112" height="30" rx="15" fill="#D0CFE7"/>
+
+  <!-- Confirmed tip badge -->
+  <circle cx="763" cy="589" r="69" fill="#25B89A"/>
+  <path d="m731 589 22 22 44-48" stroke="#FFFFFF" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Small notification glint -->
+  <path d="M824 255c8 30 20 42 50 50-30 8-42 20-50 50-8-30-20-42-50-50 30-8 42-20 50-50Z" fill="#FFF1A8"/>
+</svg>

@@ -113,12 +113,13 @@ struct TipContentView: View {
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                 .lineLimit(1)
                 .fixedSize()
-            if showCount && tip.kind != .capsLock {
+            if showCount && tip.kind != .capsLock && tip.count > 1 {
                 Text("×\(tip.count)")
                     .font(.system(size: 12, weight: .semibold, design: .rounded).monospacedDigit())
                     .padding(.horizontal, 7).padding(.vertical, 4)
                     .background(.tint.opacity(0.16), in: Capsule())
                     .contentTransition(.numericText())
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
             }
         }
         .padding(.horizontal, 16)

@@ -6,8 +6,8 @@ struct ClipboardEventCorrelator {
     enum Output: Equatable { case confirmed(TipKind), inferredCopy }
     struct Pending { var intent: Intent; var time: TimeInterval; var baseline: Int }
 
-    static let confirmationWindow: TimeInterval = 0.8
-    static let rewriteMergeWindow: TimeInterval = 0.25
+    static let confirmationWindow: TimeInterval = 1.2
+    static let rewriteMergeWindow: TimeInterval = 0.75
     private(set) var pending: [Pending] = []
     private(set) var lastChangeCount: Int
     private var lastConfirmedChangeAt: TimeInterval = -.infinity

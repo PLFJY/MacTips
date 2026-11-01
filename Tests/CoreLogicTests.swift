@@ -30,6 +30,13 @@ final class CoreLogicTests: XCTestCase {
         XCTAssertEqual(KeyboardShortcutClassifier.classify(keyCode: 9, flags: .maskCommand, isRepeat: false), .paste)
     }
 
+    func testCutCanBeConfirmedAfterASlowerPoll() {
+        var correlator = ClipboardEventCorrelator(initialChangeCount: 0)
+        correlator.record(.cut, changeCount: 0, at: 1)
+        XCTAssertEqual(correlator.clipboardChanged(to: 1, hasTypes: true, at: 1.9, showAnyCopy: true), [.confirmed(.cut)])
+        XCTAssertEqual(correlator.clipboardChanged(to: 2, hasTypes: true, at: 2.4, showAnyCopy: true), [])
+    }
+
     func testNewCutSupersedesUnconfirmedCopy() {
         var correlator = ClipboardEventCorrelator(initialChangeCount: 0)
         correlator.record(.copy, changeCount: 0, at: 1)
@@ -46,7 +53,7 @@ final class CoreLogicTests: XCTestCase {
         XCTAssertEqual(correlator.clipboardChanged(to: 2, hasTypes: true, at: 1.4, showAnyCopy: true), [.confirmed(.copy)])
         correlator.supersedeWithPaste(at: 1.5)
         XCTAssertEqual(correlator.clipboardChanged(to: 3, hasTypes: true, at: 1.8, showAnyCopy: true), [])
-        XCTAssertEqual(correlator.clipboardChanged(to: 4, hasTypes: true, at: 2.3, showAnyCopy: true), [.inferredCopy])
+        XCTAssertEqual(correlator.clipboardChanged(to: 4, hasTypes: true, at: 2.7, showAnyCopy: true), [.inferredCopy])
     }
 
     func testInferredCopiesRespectSettingsAndMergeClipboardRewrites() {

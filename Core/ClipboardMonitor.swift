@@ -9,9 +9,11 @@ final class ClipboardMonitor {
     func start() {
         guard timer == nil else { return }
         lastCount = NSPasteboard.general.changeCount
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.poll() }
         }
+        timer.tolerance = 0.1
+        self.timer = timer
     }
 
     func stop() { timer?.invalidate(); timer = nil }

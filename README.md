@@ -1,63 +1,108 @@
 # WinTipsMac
 
-WinTipsMac 是面向 macOS 26 及更新系统的原生菜单栏工具。它使用 SwiftUI、AppKit、Core Graphics Event Tap 和 `NSPasteboard.changeCount`，在屏幕上显示复制、粘贴、剪切和 Caps Lock 提示。应用不读取剪贴板载荷，也不保存或上传按键、文本、图片或文件内容。
+[English](README.en.md) · macOS 26 及更新版本 · Swift 6 · 无第三方依赖
 
-## 构建与运行
+WinTipsMac 是一个原生 macOS 菜单栏工具，在复制、粘贴、剪切和切换 Caps Lock 时显示轻量提示。提示窗使用系统 Liquid Glass，不抢焦点，也不会阻挡鼠标操作。
 
-1. 在 Xcode 27 或更新版本打开 `WinTipsMac.xcodeproj`。
-2. 选择 `WinTipsMac` scheme，运行 macOS 应用。
-3. 从菜单栏图标打开 Settings，允许 Input Monitoring，然后在系统设置中启用 WinTipsMac。权限更改后如未立即生效，请退出并重新打开应用。
-4. 用菜单栏的 Test Tips 验证 OSD；测试提示不会写剪贴板，也不会伪造按键。
+## 功能
 
-命令行构建与测试：
+| 功能 | 行为 |
+| --- | --- |
+| 复制与剪切 | 识别 `⌘C` 和 `⌘X`，在 800 毫秒内观察到剪贴板变化后显示提示 |
+| 粘贴 | 按下 `⌘V` 时立即显示提示；不声称目标应用已成功粘贴 |
+| 任意来源复制 | 推定右键菜单、应用内复制按钮等引起的剪贴板变化；可在设置中关闭 |
+| 连续计数 | 同类操作连续发生时显示 `×N`，并刷新提示的停留时间 |
+| Caps Lock | 显示大写锁定开启或关闭状态 |
+| 外观与位置 | 调整停留时间、动画速度、六种预设位置或自定义位置，也可跟随鼠标所在屏幕 |
+| 系统集成 | 菜单栏常驻、登录时启动、输入监控权限引导、中英文界面 |
+| 辅助功能 | 跟随系统的降低透明度和减少动态效果设置 |
+
+应用只检查剪贴板的变化计数和类型元数据，不读取、保存或上传剪贴板内容。键盘监听使用只读 Event Tap，不拦截原始按键。
+
+## 构建与安装
+
+### 环境要求
+
+- macOS 26.0 或更新版本，支持 Apple Silicon 和 Intel。
+- 完整版 Xcode 及其 macOS SDK；本项目已使用 Xcode 27 构建。
+- 无需安装第三方 Swift Package 或运行时。
+
+### 命令行构建
+
+在项目根目录执行：
 
 ```sh
-xcodebuild -list -project WinTipsMac.xcodeproj
-xcodebuild -project WinTipsMac.xcodeproj -scheme WinTipsMac -configuration Debug -destination 'platform=macOS' build
-xcodebuild -project WinTipsMac.xcodeproj -scheme WinTipsMac -configuration Release -destination 'platform=macOS' build
-xcodebuild -project WinTipsMac.xcodeproj -scheme WinTipsMac -configuration Debug -destination 'platform=macOS' test
+# 构建 Release 版本，产物写入项目的 build 目录
+xcodebuild -project WinTipsMac.xcodeproj \
+  -scheme WinTipsMac -configuration Release \
+  -destination 'platform=macOS' -derivedDataPath build build
+
+# 直接运行构建产物
+open build/Build/Products/Release/WinTipsMac.app
 ```
 
-本项目无第三方 Swift Package。设置保存在当前用户的 `UserDefaults` 中。登录启动使用 `SMAppService.mainApp`。
+也可以用 Xcode 打开 `WinTipsMac.xcodeproj`，选择 `WinTipsMac` scheme，按 **⌘R** 构建并运行。
 
-## 功能和权限
+### 安装到当前用户的应用程序目录
 
-- 使用 listen-only Event Tap 识别物理 Command+C/V/X；快捷键之外的 Command/Shift/Option/Control 组合会被排除，重复 keyDown 不提示。
-- 粘贴提示表示检测到 Command+V 按键，不代表目标应用成功粘贴。
-- 复制和剪切提示要等最多 800ms 的剪贴板 changeCount 更新确认；不读剪贴板内容。
-- 任意来源复制是启发式推定：系统没有公开 API 能仅凭剪贴板变化区分复制、剪切、清空、密码管理器或剪贴板管理器的回写。应用只检查类型元数据；元数据不可用或为空时采取保守策略，不显示推定复制。
-- 高频、无快捷键关联的剪贴板变化在 250ms 合并。独立的快捷键操作仍分别确认。
-- OSD 使用 SwiftUI `.glassEffect` 和不激活、点击穿透的 AppKit `NSPanel`。系统启用降低透明度时使用不透明背景；减少动态效果时不执行滑动动效。
-- 支持六种屏幕边缘预设、自定义可拖动位置、鼠标屏幕选择、显示时长和动画速度。
-- 全局键盘监听需要 Input Monitoring 权限。没有该权限时菜单栏和剪贴板轮询仍工作，但键盘快捷键与 Caps Lock 不可检测。应用不会要求 Accessibility、Full Disk Access 或 Screen Recording。
-- 登录启动在未签名的本地调试运行中可能受系统策略限制；如系统注册失败，设置界面会显示错误。
+先执行上面的 Release 构建，再运行：
 
-Num Lock、Scroll Lock 和 Insert 未实现：macOS 没有适用于所有键盘的通用状态 API，因此应用不伪造这些状态。
+```sh
+mkdir -p "$HOME/Applications"
+ditto build/Build/Products/Release/WinTipsMac.app "$HOME/Applications/WinTipsMac.app"
+open "$HOME/Applications/WinTipsMac.app"
+```
 
-## 真实 Mac 手动验收
+安装命令会写入 `~/Applications/WinTipsMac.app`。更新已有安装时，请先退出正在运行的 WinTipsMac。项目默认使用 ad-hoc 签名；重新构建或移动应用后，系统可能要求重新授予权限。分发给其他用户需要自行配置合适的签名和公证。
 
-请在启用 Input Monitoring 后逐项检查。自动化测试覆盖快捷键分类、剪贴板关联/超时/合并和计数模型，但不能替代这些桌面验证。
+### 首次授权
 
-- [ ] Finder：复制文件，再粘贴到另一个文件夹；检查 Copy/Cut/Paste 提示。
-- [ ] Finder：验证其剪切文件实际交互限制（通常通过 Command+C 后 Command+Option+V 移动）；不要把 Command+X 提示当成 Finder 一定支持。
-- [ ] TextEdit：复制选中文字、粘贴；空选区 Command+C 不应显示已复制。
-- [ ] Firefox：网页选中文字复制、地址栏粘贴；也试试右键菜单复制。
-- [ ] Terminal：Command+C 中断前台程序时不应误报复制；在可复制文本的上下文中检查实际行为。
-- [ ] 使用应用内复制按钮，检查任意来源推定提示。
-- [ ] 连续执行多次真实复制，检查 `×N`；用剪贴板管理器时检查连续回写是否被合并。
-- [ ] 切换 Caps Lock，检查开启和关闭文案；检查键盘设置中重新映射 Caps Lock 的情况。
-- [ ] 在全屏应用、多个显示器和位于主屏幕左侧/上方的显示器上验证 OSD；拔除显示器后验证回退。
-- [ ] 启用、关闭登录启动；撤销再授予 Input Monitoring 后检查监听恢复。
-- [ ] 开启系统降低透明度、减少动态效果设置，检查可读性和动效回退。
+1. 点击菜单栏中的 WinTipsMac 图标，打开 **设置 → 系统**。
+2. 点击 **请求权限**，在 **系统设置 → 隐私与安全性 → 输入监控** 中启用 WinTipsMac。
+3. 若权限更改后未生效，退出并重新打开应用。
+4. 在菜单栏的 **测试提示** 中预览浮窗。
 
-## 架构
+未授权时，菜单栏和剪贴板变化检测仍可使用；全局快捷键和 Caps Lock 提示需要输入监控权限。
 
-- `App/`：SwiftUI 菜单栏入口及生命周期协调。
-- `Core/`：Event Tap、剪贴板轮询与关联、设置、权限、登录启动和提示计数。
-- `UI/`：原生 OSD 面板、菜单栏和设置界面。
-- `Resources/`：英文与简体中文 `.strings` 本地化。
-- `Tests/`：可执行的快捷键、剪贴板关联和提示计数单元测试。
+## 项目架构
 
-## 许可
+```text
+MacTips/
+├── App/                       应用入口和生命周期协调
+│   ├── WinTipsMacApp.swift    菜单栏应用与设置窗口入口
+│   └── AppCoordinator.swift   连接监听器、权限状态与提示调度
+├── Core/                      事件处理和系统服务
+│   ├── KeyboardMonitor.swift  全局键盘事件监听
+│   ├── ClipboardMonitor.swift 剪贴板变化轮询
+│   ├── ClipboardEventCorrelator.swift  关联快捷键与剪贴板变化
+│   ├── TipCoordinator.swift   提示显示与隐藏调度
+│   ├── PlacementEngine.swift  屏幕位置与动画方向计算
+│   ├── SettingsStore.swift    设置持久化
+│   └── …                      权限、登录启动、快捷键分类与计数
+├── UI/                        提示窗、菜单栏和设置界面
+├── Resources/                 简体中文与英文资源
+├── Tests/                     核心逻辑单元测试
+└── WinTipsMac.xcodeproj/      Xcode 项目与 scheme
+```
 
-本项目遵循 MIT License。WinTips 的行为分析参考了对应开源仓库；macOS 实现独立编写，没有移植 Windows 专属代码，也没有复用 FluentFlyout 的 GPL 代码或资源。参见 [LICENSE](LICENSE)。
+事件流程：键盘监听器识别快捷键；复制和剪切由关联器等待剪贴板变化确认，粘贴直接进入提示调度。剪贴板轮询也可独立推定非快捷键复制；最终由同一个 OSD 窗口显示提示。
+
+## 测试
+
+```sh
+xcodebuild -project WinTipsMac.xcodeproj \
+  -scheme WinTipsMac -configuration Debug \
+  -destination 'platform=macOS' -derivedDataPath build test
+```
+
+自动化测试覆盖快捷键分类、剪贴板事件关联与合并、连续计数和位置计算。桌面验收仍应检查：Finder 文件复制与粘贴、TextEdit 和 Firefox 文本复制、Terminal 中的 `⌘C`、右键菜单与应用内复制、剪贴板管理器回写、Caps Lock、全屏和外接显示器、登录启动，以及撤销后重新授予输入监控权限。
+
+## 使用限制
+
+- macOS 没有公开 API 能仅凭剪贴板变化准确区分复制、剪切、清空和其他应用的回写。“任意来源复制”因此是推定，可能出现误报或漏报；短时间内的无关联回写会被合并。
+- Finder 移动文件通常使用 `⌘C` 后接 `⌘⌥V`；Finder 的 `⌘X` 行为与文本编辑器不同。
+- Num Lock、Scroll Lock 和 Insert 的通用状态提示尚未实现。
+
+## 许可证与致谢
+
+本项目使用 [MIT License](LICENSE)。功能行为参考了 WinTips；macOS 实现独立编写，未复用 FluentFlyout 的 GPL 代码或资源。

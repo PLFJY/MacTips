@@ -3,8 +3,11 @@ import SwiftUI
 
 @MainActor
 final class GlassOSDPanel: NSPanel {
+    private let animationDuration = 0.3
+    private let animationDistance: CGFloat = 16
     private var host: NSHostingView<TipContentView>?
     private var lastDirection = SlideDirection.down
+    private var targetOrigin = CGPoint.zero
     private var animationGeneration = 0
 
     init() {
@@ -37,30 +40,36 @@ final class GlassOSDPanel: NSPanel {
         host?.layoutSubtreeIfNeeded()
         if let fitting = host?.fittingSize { setContentSize(NSSize(width: max(170, fitting.width), height: 54)) }
         let target = origin(for: settings)
+        targetOrigin = target
         let speed = settings.animationSpeed
         let shouldAnimate = speed > 0 && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         if !isVisible {
             alphaValue = shouldAnimate ? 0 : 1
-            let start = CGPoint(x: target.x + lastDirection.offset.dx * 16, y: target.y + lastDirection.offset.dy * 16)
+            let start = CGPoint(x: target.x + lastDirection.offset.dx * animationDistance, y: target.y + lastDirection.offset.dy * animationDistance)
             setFrameOrigin(shouldAnimate ? start : target)
             orderFrontRegardless()
             if shouldAnimate {
                 NSAnimationContext.runAnimationGroup { context in
-                    context.duration = 0.3 * speed
+                    context.duration = animationDuration * speed
+                    context.allowsImplicitAnimation = true
                     context.timingFunction = CAMediaTimingFunction(name: .easeOut)
                     animator().setFrame(NSRect(origin: target, size: frame.size), display: true)
                     animator().alphaValue = 1
                 }
             }
         } else {
-            setFrameOrigin(target)
             if shouldAnimate {
                 NSAnimationContext.runAnimationGroup { context in
-                    context.duration = 0.3 * speed
+                    context.duration = animationDuration * speed
+                    context.allowsImplicitAnimation = true
                     context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                    animator().setFrame(NSRect(origin: target, size: frame.size), display: true)
                     animator().alphaValue = 1
                 }
-            } else { alphaValue = 1 }
+            } else {
+                setFrameOrigin(target)
+                alphaValue = 1
+            }
         }
     }
 
@@ -69,9 +78,10 @@ final class GlassOSDPanel: NSPanel {
         let generation = animationGeneration
         let speed = settings.animationSpeed
         guard speed > 0, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { orderOut(nil); return }
-        let exit = CGPoint(x: frame.origin.x + lastDirection.offset.dx * 16, y: frame.origin.y + lastDirection.offset.dy * 16)
+        let exit = CGPoint(x: targetOrigin.x + lastDirection.offset.dx * animationDistance, y: targetOrigin.y + lastDirection.offset.dy * animationDistance)
         NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.22 * speed
+            context.duration = animationDuration * speed
+            context.allowsImplicitAnimation = true
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             animator().alphaValue = 0
             animator().setFrame(NSRect(origin: exit, size: frame.size), display: true)

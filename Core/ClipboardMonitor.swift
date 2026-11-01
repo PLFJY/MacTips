@@ -4,26 +4,31 @@ import AppKit
 final class ClipboardMonitor {
     var onChange: ((Int, TimeInterval) -> Void)?
     private var timer: Timer?
+    private var lastCount = 0
+    private var deadline: TimeInterval?
     var isMonitoring: Bool { timer != nil }
 
-    func start(baseline: Int, at time: TimeInterval) {
+    func start(baseline: Int, at time: TimeInterval, continuous: Bool = false) {
         stop()
-        let deadline = time + ClipboardEventCorrelator.confirmationWindow
-        let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.poll(baseline: baseline, deadline: deadline) }
+        lastCount = baseline
+        deadline = continuous ? nil : time + ClipboardEventCorrelator.confirmationWindow
+        let timer = Timer(timeInterval: 0.2, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.poll() }
         }
-        timer.tolerance = 0.02
+        timer.tolerance = 0.04
+        RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
     }
 
     func stop() { timer?.invalidate(); timer = nil }
 
-    private func poll(baseline: Int, deadline: TimeInterval) {
+    private func poll() {
         let now = ProcessInfo.processInfo.systemUptime
-        guard now <= deadline else { stop(); return }
+        if let deadline, now > deadline { stop(); return }
         let count = NSPasteboard.general.changeCount
-        guard count != baseline else { return }
-        stop()
+        guard count != lastCount else { return }
+        lastCount = count
+        if deadline != nil { stop() }
         onChange?(count, now)
     }
 }

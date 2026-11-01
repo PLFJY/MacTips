@@ -55,3 +55,5 @@
 "tip.caps" = "大写锁定";
 "tip.caps.on" = "大写锁定 已开启";
 "tip.caps.off" = "大写锁定 已关闭";
+"settings.anyCopy" = "检测其他来源的复制";
+"settings.anyCopy.detail" = "检测右键菜单及复制按钮引起的剪贴板变化。其他应用修改剪贴板也可能触发复制提示。";

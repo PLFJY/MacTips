@@ -47,6 +47,9 @@ struct SettingsView: View {
         Form {
             Section("settings.clipboard") {
                 Toggle("settings.copy", isOn: $settings.showCopy)
+                Toggle("settings.anyCopy", isOn: $settings.showAnyCopy)
+                    .disabled(!settings.showCopy)
+                Text("settings.anyCopy.detail").font(.footnote).foregroundStyle(.secondary)
                 Toggle("settings.paste", isOn: $settings.showPaste)
                 Toggle("settings.cut", isOn: $settings.showCut)
                 Toggle("settings.count", isOn: $settings.showCount)

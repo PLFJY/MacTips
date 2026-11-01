@@ -55,3 +55,5 @@
 "tip.caps" = "Caps Lock";
 "tip.caps.on" = "Caps Lock On";
 "tip.caps.off" = "Caps Lock Off";
+"settings.anyCopy" = "Detect copies from other sources";
+"settings.anyCopy.detail" = "Checks for clipboard changes from menus and copy buttons. Other apps may also change the clipboard and trigger a copy hint.";

@@ -7,6 +7,7 @@ final class SettingsStore: ObservableObject {
     private let defaults: UserDefaults
     private var isLoading = true
 
+    @Published var showAnyCopy = true { didSet { save() } }
     @Published var showCopy = true { didSet { save() } }
     @Published var showPaste = true { didSet { save() } }
     @Published var showCut = true { didSet { save() } }
@@ -24,6 +25,7 @@ final class SettingsStore: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        showAnyCopy = defaults.object(forKey: "showAnyCopy") as? Bool ?? true
         showCopy = defaults.object(forKey: "showCopy") as? Bool ?? true
         showPaste = defaults.object(forKey: "showPaste") as? Bool ?? true
         showCut = defaults.object(forKey: "showCut") as? Bool ?? true
@@ -52,6 +54,7 @@ final class SettingsStore: ObservableObject {
 
     private func save() {
         guard !isLoading else { return }
+        defaults.set(showAnyCopy, forKey: "showAnyCopy")
         defaults.set(showCopy, forKey: "showCopy")
         defaults.set(showPaste, forKey: "showPaste")
         defaults.set(showCut, forKey: "showCut")

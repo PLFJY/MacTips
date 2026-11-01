@@ -87,6 +87,20 @@ final class CoreLogicTests: XCTestCase {
         XCTAssertEqual(correlator.clipboardChanged(to: 3, at: 4.3), [])
     }
 
+    func testUnsolicitedCopiesAndManagerRewrites() {
+        var correlator = ClipboardEventCorrelator(initialChangeCount: 1)
+        XCTAssertEqual(correlator.clipboardChanged(to: 2, at: 1, allowUnsolicited: true), [.confirmed(.copy)])
+        XCTAssertEqual(correlator.clipboardChanged(to: 3, at: 1.1, allowUnsolicited: true), [])
+        XCTAssertEqual(correlator.clipboardChanged(to: 4, at: 1.4, allowUnsolicited: true, hasContent: false), [])
+        correlator.record(.cut, changeCount: 4, at: 1.5)
+        XCTAssertEqual(correlator.clipboardChanged(to: 5, at: 1.6, allowUnsolicited: true), [.confirmed(.cut)])
+        correlator.record(.copy, changeCount: 5, at: 1.7)
+        XCTAssertEqual(correlator.clipboardChanged(to: 6, at: 1.8, allowUnsolicited: true), [.confirmed(.copy)])
+        correlator.supersedeWithPaste(at: 2)
+        XCTAssertEqual(correlator.clipboardChanged(to: 7, at: 2.1, allowUnsolicited: true), [])
+        XCTAssertEqual(correlator.clipboardChanged(to: 8, at: 2.4, allowUnsolicited: true), [.confirmed(.copy)])
+    }
+
     func testRepeatedSameOperationCountsAndHideResets() {
         var counter = TipSequenceCounter()
         XCTAssertEqual(counter.show(.copy), 1)

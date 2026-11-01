@@ -8,6 +8,8 @@ struct ClipboardEventCorrelator {
 
     static let confirmationWindow: TimeInterval = 1.2
     private(set) var pending: [Pending] = []
+    static let mergeWindow: TimeInterval = 0.25
+    private var lastHintTime: TimeInterval?
     private(set) var lastChangeCount: Int
 
     init(initialChangeCount: Int) { lastChangeCount = initialChangeCount }
@@ -18,19 +20,26 @@ struct ClipboardEventCorrelator {
         lastChangeCount = changeCount
     }
 
-    mutating func supersedeWithPaste() {
+    mutating func supersedeWithPaste(at time: TimeInterval? = nil) {
         pending.removeAll()
+        if let time { lastHintTime = time }
     }
 
-    mutating func clipboardChanged(to count: Int, at time: TimeInterval) -> [Output] {
+    mutating func synchronize(changeCount: Int) { lastChangeCount = changeCount }
+
+    mutating func clipboardChanged(to count: Int, at time: TimeInterval, allowUnsolicited: Bool = false, hasContent: Bool = true) -> [Output] {
         guard count != lastChangeCount else { return [] }
         lastChangeCount = count
         pending.removeAll { time - $0.time > Self.confirmationWindow }
         if let index = pending.firstIndex(where: { count != $0.baseline }) {
             let operation = pending.remove(at: index)
+            lastHintTime = time
             return [.confirmed(operation.intent == .copy ? .copy : .cut)]
         }
-        return []
+        guard allowUnsolicited, hasContent,
+              lastHintTime.map({ time - $0 >= Self.mergeWindow }) ?? true else { return [] }
+        lastHintTime = time
+        return [.confirmed(.copy)]
     }
 
     mutating func expire(at time: TimeInterval) {

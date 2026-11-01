@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import Combine
 
 @MainActor
 final class AppCoordinator: ObservableObject {
@@ -9,6 +10,7 @@ final class AppCoordinator: ObservableObject {
     let tips: TipCoordinator
     @Published private(set) var permissionGranted = PermissionsManager.inputMonitoringGranted
     @Published private(set) var monitoringActive = false
+    private var copySettingObserver: AnyCancellable?
     private var activationObserver: NSObjectProtocol?
     private var terminationObserver: NSObjectProtocol?
     private(set) var settingsWindow: NSWindow?
@@ -29,13 +31,13 @@ final class AppCoordinator: ObservableObject {
             self.observeCurrentClipboard()
             let time = ProcessInfo.processInfo.systemUptime
             self.correlator.record(intent, changeCount: changeCount, at: time)
-            self.clipboard.start(baseline: changeCount, at: time)
+            if !self.monitorsOtherCopies { self.clipboard.start(baseline: changeCount, at: time) }
         }
         keyboard.onPaste = { [weak self] in
             guard let self else { return }
             self.observeCurrentClipboard()
-            self.clipboard.stop()
-            self.correlator.supersedeWithPaste()
+            if !self.monitorsOtherCopies { self.clipboard.stop() }
+            self.correlator.supersedeWithPaste(at: ProcessInfo.processInfo.systemUptime)
             self.tips.show(.paste)
         }
         keyboard.onCapsLock = { [weak self] state in self?.tips.show(.capsLock, state: state) }
@@ -44,7 +46,24 @@ final class AppCoordinator: ObservableObject {
             self.handleClipboardChange(count: count, at: time)
         }
         correlator = ClipboardEventCorrelator(initialChangeCount: NSPasteboard.general.changeCount)
+        configureClipboardMonitoring()
+        copySettingObserver = Publishers.CombineLatest(settings.$showAnyCopy, settings.$showCopy).dropFirst().sink { [weak self] _ in
+            Task { @MainActor in self?.configureClipboardMonitoring() }
+        }
         refreshPermission()
+    }
+
+    private var monitorsOtherCopies: Bool { settings.showAnyCopy && settings.showCopy }
+
+    private func configureClipboardMonitoring() {
+        clipboard.stop()
+        let count = NSPasteboard.general.changeCount
+        correlator.synchronize(changeCount: count)
+        if monitorsOtherCopies {
+            clipboard.start(baseline: count, at: ProcessInfo.processInfo.systemUptime, continuous: true)
+        } else if let pending = correlator.pending.last {
+            clipboard.start(baseline: pending.baseline, at: pending.time)
+        }
     }
 
     private var correlator: ClipboardEventCorrelator!
@@ -69,7 +88,10 @@ final class AppCoordinator: ObservableObject {
     }
 
     private func handleClipboardChange(count: Int, at time: TimeInterval) {
-        let outputs = correlator.clipboardChanged(to: count, at: time)
+        let hasContent = !(NSPasteboard.general.types ?? []).isEmpty
+        let outputs = correlator.clipboardChanged(to: count, at: time,
+                                                  allowUnsolicited: monitorsOtherCopies,
+                                                  hasContent: hasContent)
         for output in outputs {
             switch output {
             case .confirmed(let kind): tips.show(kind)
@@ -82,7 +104,7 @@ final class AppCoordinator: ObservableObject {
         if permissionGranted != granted { permissionGranted = granted }
         let active: Bool
         if granted { active = keyboard.isRunning || keyboard.start() }
-        else { keyboard.stop(); clipboard.stop(); correlator.supersedeWithPaste(); active = false }
+        else { keyboard.stop(); if !monitorsOtherCopies { clipboard.stop() }; correlator.supersedeWithPaste(); active = false }
         if monitoringActive != active { monitoringActive = active }
     }
 

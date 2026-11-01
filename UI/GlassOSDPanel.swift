@@ -18,7 +18,8 @@ final class GlassOSDPanel: NSPanel {
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
         backgroundColor = .clear
         isOpaque = false
-        hasShadow = true
+        // The panel is rectangular; its window shadow would outline transparent corners.
+        hasShadow = false
         ignoresMouseEvents = true
     }
 
@@ -130,7 +131,6 @@ struct TipContentView: View {
             }
         }
         .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(.white.opacity(0.13), lineWidth: 0.6))
-        .shadow(color: .black.opacity(0.14), radius: 14, y: 5)
         .animation(reduceMotion ? nil : .spring(duration: 0.28, bounce: 0.12), value: tip.count)
         .fixedSize()
     }

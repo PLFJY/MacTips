@@ -21,19 +21,18 @@ struct SettingsView: View {
     @State private var editorPoint = CGPoint(x: 0.5, y: 0.5)
 
     var body: some View {
-        VStack(spacing: 0) {
+        TabView {
+            clipboardPane.tabItem { Label("settings.clipboard", systemImage: "doc.on.clipboard") }
+            appearancePane.tabItem { Label("settings.appearance", systemImage: "rectangle.on.rectangle") }
+            systemPane.tabItem { Label("settings.system", systemImage: "gear") }
+        }
+        .padding(20)
+        .safeAreaInset(edge: .bottom) {
             HStack {
                 Spacer()
                 Button("app.quit") { NSApp.terminate(nil) }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 12)
-            TabView {
-                clipboardPane.tabItem { Label("settings.clipboard", systemImage: "doc.on.clipboard") }
-                appearancePane.tabItem { Label("settings.appearance", systemImage: "rectangle.on.rectangle") }
-                systemPane.tabItem { Label("settings.system", systemImage: "gear") }
-            }
-            .padding(20)
+            .padding([.horizontal, .bottom], 20)
         }
         .alert("settings.launchError", isPresented: Binding(get: { launchError != nil }, set: { if !$0 { launchError = nil } })) {
             Button("common.ok") { launchError = nil }

@@ -12,6 +12,7 @@ final class AppCoordinator: ObservableObject {
     private var activationObserver: NSObjectProtocol?
     private var terminationObserver: NSObjectProtocol?
     private(set) var settingsWindow: NSWindow?
+    private var settingsRequested = false
 
     init() {
         tips = TipCoordinator(settings: settings)
@@ -49,23 +50,17 @@ final class AppCoordinator: ObservableObject {
     private var correlator: ClipboardEventCorrelator!
 
     func showSettings() {
-        let window: NSWindow
-        if let existing = settingsWindow {
-            window = existing
-        } else {
-            let root = SettingsWindowContent(coordinator: self, settings: settings)
-            window = NSWindow(contentViewController: NSHostingController(rootView: root))
-            window.title = String(localized: "settings.title", locale: settings.activeLocale)
-            window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
-            window.setContentSize(NSSize(width: 600, height: 560))
-            window.minSize = NSSize(width: 520, height: 490)
-            window.isReleasedWhenClosed = false
-            window.center()
-            settingsWindow = window
-        }
-        window.title = String(localized: "settings.title", locale: settings.activeLocale)
+        settingsRequested = true
+        guard let window = settingsWindow else { return }
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+    }
+
+    func registerSettingsWindow(_ window: NSWindow) {
+        guard settingsWindow == nil else { return }
+        settingsWindow = window
+        window.isReleasedWhenClosed = false
+        if settingsRequested { showSettings() }
     }
 
     private func observeCurrentClipboard() {

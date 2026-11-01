@@ -9,6 +9,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = coordinator
     }
 
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
         coordinator.showSettings()
         return false

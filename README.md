@@ -1,8 +1,8 @@
-# WinTipsMac
+# MacTips
 
 [English](README.en.md) · macOS 26 及更新版本 · Swift 6 · 无第三方依赖
 
-WinTipsMac 是一个原生 macOS 菜单栏工具，在复制、粘贴、剪切和切换 Caps Lock 时显示轻量提示。提示窗使用系统 Liquid Glass，不抢焦点，也不会阻挡鼠标操作。
+MacTips 是一个原生 macOS 菜单栏工具，在复制、粘贴、剪切和切换 Caps Lock 时显示轻量提示。提示窗使用系统 Liquid Glass，不抢焦点，也不会阻挡鼠标操作。
 
 ## 功能
 
@@ -33,15 +33,15 @@ WinTipsMac 是一个原生 macOS 菜单栏工具，在复制、粘贴、剪切�
 
 ```sh
 # 构建 Release 版本，产物写入项目的 build 目录
-xcodebuild -project WinTipsMac.xcodeproj \
-  -scheme WinTipsMac -configuration Release \
+xcodebuild -project MacTips.xcodeproj \
+  -scheme MacTips -configuration Release \
   -destination 'platform=macOS' -derivedDataPath build build
 
 # 直接运行构建产物
-open build/Build/Products/Release/WinTipsMac.app
+open build/Build/Products/Release/MacTips.app
 ```
 
-也可以用 Xcode 打开 `WinTipsMac.xcodeproj`，选择 `WinTipsMac` scheme，按 **⌘R** 构建并运行。
+也可以用 Xcode 打开 `MacTips.xcodeproj`，选择 `MacTips` scheme，按 **⌘R** 构建并运行。
 
 ### 安装到当前用户的应用程序目录
 
@@ -49,16 +49,16 @@ open build/Build/Products/Release/WinTipsMac.app
 
 ```sh
 mkdir -p "$HOME/Applications"
-ditto build/Build/Products/Release/WinTipsMac.app "$HOME/Applications/WinTipsMac.app"
-open "$HOME/Applications/WinTipsMac.app"
+ditto build/Build/Products/Release/MacTips.app "$HOME/Applications/MacTips.app"
+open "$HOME/Applications/MacTips.app"
 ```
 
-安装命令会写入 `~/Applications/WinTipsMac.app`。更新已有安装时，请先退出正在运行的 WinTipsMac。项目默认使用 ad-hoc 签名；重新构建或移动应用后，系统可能要求重新授予权限。分发给其他用户需要自行配置合适的签名和公证。
+安装命令会写入 `~/Applications/MacTips.app`。更新已有安装时，请先退出正在运行的 MacTips。项目默认使用 ad-hoc 签名；重新构建或移动应用后，系统可能要求重新授予权限。分发给其他用户需要自行配置合适的签名和公证。
 
 ### 首次授权
 
-1. 点击菜单栏中的 WinTipsMac 图标，打开 **设置 → 系统**。
-2. 点击 **请求权限**，在 **系统设置 → 隐私与安全性 → 输入监控** 中启用 WinTipsMac。
+1. 点击菜单栏中的 MacTips 图标，打开 **设置 → 系统**。
+2. 点击 **请求权限**，在 **系统设置 → 隐私与安全性 → 输入监控** 中启用 MacTips。
 3. 若权限更改后未生效，退出并重新打开应用。
 4. 在菜单栏的 **测试提示** 中预览浮窗。
 
@@ -69,7 +69,7 @@ open "$HOME/Applications/WinTipsMac.app"
 ```text
 MacTips/
 ├── App/                       应用入口和生命周期协调
-│   ├── WinTipsMacApp.swift    菜单栏应用与设置窗口入口
+│   ├── MacTipsApp.swift    菜单栏应用与设置窗口入口
 │   └── AppCoordinator.swift   连接监听器、权限状态与提示调度
 ├── Core/                      事件处理和系统服务
 │   ├── KeyboardMonitor.swift  全局键盘事件监听
@@ -82,7 +82,7 @@ MacTips/
 ├── UI/                        提示窗、菜单栏和设置界面
 ├── Resources/                 简体中文与英文资源
 ├── Tests/                     核心逻辑单元测试
-└── WinTipsMac.xcodeproj/      Xcode 项目与 scheme
+└── MacTips.xcodeproj/      Xcode 项目与 scheme
 ```
 
 事件流程：键盘监听器识别快捷键；复制和剪切由关联器等待剪贴板变化确认，粘贴直接进入提示调度。剪贴板轮询也可独立推定非快捷键复制；最终由同一个 OSD 窗口显示提示。
@@ -90,8 +90,8 @@ MacTips/
 ## 测试
 
 ```sh
-xcodebuild -project WinTipsMac.xcodeproj \
-  -scheme WinTipsMac -configuration Debug \
+xcodebuild -project MacTips.xcodeproj \
+  -scheme MacTips -configuration Debug \
   -destination 'platform=macOS' -derivedDataPath build test
 ```
 

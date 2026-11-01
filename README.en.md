@@ -1,16 +1,16 @@
-# WinTipsMac
+# MacTips
 
-WinTipsMac is a native menu bar utility for macOS 26 and later. It uses SwiftUI, AppKit, a listen-only Core Graphics Event Tap, and `NSPasteboard.changeCount` to show Copy, Paste, Cut, and Caps Lock hints. Clipboard payloads are never read, stored, or sent over the network.
+MacTips is a native menu bar utility for macOS 26 and later. It uses SwiftUI, AppKit, a listen-only Core Graphics Event Tap, and `NSPasteboard.changeCount` to show Copy, Paste, Cut, and Caps Lock hints. Clipboard payloads are never read, stored, or sent over the network.
 
 ## Build and run
 
-Open `WinTipsMac.xcodeproj` in Xcode 27 or later, run the `WinTipsMac` scheme, then open Settings from the menu bar and enable WinTipsMac under System Settings → Privacy & Security → Input Monitoring. Quit and relaunch if the permission change does not take effect immediately. Menu bar Test Tips exercises the real OSD without changing the clipboard or synthesizing key events.
+Open `MacTips.xcodeproj` in Xcode 27 or later, run the `MacTips` scheme, then open Settings from the menu bar and enable MacTips under System Settings → Privacy & Security → Input Monitoring. Quit and relaunch if the permission change does not take effect immediately. Menu bar Test Tips exercises the real OSD without changing the clipboard or synthesizing key events.
 
 ```sh
-xcodebuild -list -project WinTipsMac.xcodeproj
-xcodebuild -project WinTipsMac.xcodeproj -scheme WinTipsMac -configuration Debug -destination 'platform=macOS' build
-xcodebuild -project WinTipsMac.xcodeproj -scheme WinTipsMac -configuration Release -destination 'platform=macOS' build
-xcodebuild -project WinTipsMac.xcodeproj -scheme WinTipsMac -configuration Debug -destination 'platform=macOS' test
+xcodebuild -list -project MacTips.xcodeproj
+xcodebuild -project MacTips.xcodeproj -scheme MacTips -configuration Debug -destination 'platform=macOS' build
+xcodebuild -project MacTips.xcodeproj -scheme MacTips -configuration Release -destination 'platform=macOS' build
+xcodebuild -project MacTips.xcodeproj -scheme MacTips -configuration Debug -destination 'platform=macOS' test
 ```
 
 There are no third-party Swift packages. Settings use `UserDefaults`; login startup uses `SMAppService.mainApp`.

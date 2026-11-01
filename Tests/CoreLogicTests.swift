@@ -1,5 +1,5 @@
 import XCTest
-@testable import WinTipsMac
+@testable import MacTips
 import ApplicationServices
 
 final class CoreLogicTests: XCTestCase {

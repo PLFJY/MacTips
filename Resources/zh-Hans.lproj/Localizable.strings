@@ -1,6 +1,6 @@
-"app.name" = "WinTipsMac";
-"app.quit" = "退出 WinTipsMac";
-"app.about" = "关于 WinTipsMac";
+"app.name" = "MacTips";
+"app.quit" = "退出 MacTips";
+"app.about" = "关于 MacTips";
 "common.ok" = "好";
 "settings.title" = "设置";
 "settings.clipboard" = "剪贴板";

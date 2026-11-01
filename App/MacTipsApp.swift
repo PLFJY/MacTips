@@ -1,11 +1,11 @@
 import SwiftUI
 
 @main
-struct WinTipsMacApp: App {
+struct MacTipsApp: App {
     @StateObject private var coordinator = AppCoordinator()
 
     var body: some Scene {
-        MenuBarExtra("WinTipsMac", systemImage: "capslock") {
+        MenuBarExtra("MacTips", systemImage: "capslock") {
             MenuBarView(coordinator: coordinator)
                 .environment(\.locale, coordinator.settings.activeLocale)
         }

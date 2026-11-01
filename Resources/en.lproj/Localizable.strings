@@ -1,6 +1,6 @@
-"app.name" = "WinTipsMac";
-"app.quit" = "Quit WinTipsMac";
-"app.about" = "About WinTipsMac";
+"app.name" = "MacTips";
+"app.quit" = "Quit MacTips";
+"app.about" = "About MacTips";
 "common.ok" = "OK";
 "settings.title" = "Settings";
 "settings.clipboard" = "Clipboard";
@@ -14,7 +14,7 @@
 "settings.anyCopy.detail" = "Clipboard changes from context menus and other actions are treated as inferred copies. Some apps and clipboard managers may trigger false hints.";
 "settings.count" = "Show consecutive action count";
 "settings.capsLock" = "Show Caps Lock changes";
-"settings.inputDisclosure" = "Input Monitoring lets WinTipsMac detect Command+C/V/X and Caps Lock. It does not record typed or copied content.";
+"settings.inputDisclosure" = "Input Monitoring lets MacTips detect Command+C/V/X and Caps Lock. It does not record typed or copied content.";
 "settings.duration" = "Display duration";
 "settings.animation" = "Animation speed";
 "settings.animationOff" = "Off";

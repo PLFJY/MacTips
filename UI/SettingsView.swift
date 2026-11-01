@@ -17,6 +17,7 @@ struct SettingsView: View {
     @ObservedObject var coordinator: AppCoordinator
     @EnvironmentObject private var settings: SettingsStore
     @State private var launchError: String?
+    @State private var launchAtLogin = false
     @State private var editorPoint = CGPoint(x: 0.5, y: 0.5)
 
     var body: some View {
@@ -161,13 +162,17 @@ struct SettingsView: View {
                     Text("language.chinese").tag("zh-Hans")
                     Text("language.english").tag("en")
                 }
-                Toggle("settings.launchAtLogin", isOn: Binding(get: { LaunchAtLoginManager.isEnabled }, set: { value in
-                    do { try LaunchAtLoginManager.setEnabled(value) } catch { launchError = error.localizedDescription }
+                Toggle("settings.launchAtLogin", isOn: Binding(get: { launchAtLogin }, set: { value in
+                    do { try LaunchAtLoginManager.setEnabled(value); launchAtLogin = LaunchAtLoginManager.isEnabled }
+                    catch { launchError = error.localizedDescription }
                 }))
                 LabeledContent("app.about", value: "macOS 26+ · SwiftUI")
             }
         }
         .formStyle(.grouped)
-        .onAppear(perform: coordinator.refreshPermission)
+        .onAppear {
+            coordinator.refreshPermission()
+            launchAtLogin = LaunchAtLoginManager.isEnabled
+        }
     }
 }

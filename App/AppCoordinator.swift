@@ -1,5 +1,4 @@
 import AppKit
-import Combine
 import SwiftUI
 
 @MainActor
@@ -10,14 +9,12 @@ final class AppCoordinator: ObservableObject {
     let tips: TipCoordinator
     @Published private(set) var permissionGranted = PermissionsManager.inputMonitoringGranted
     @Published private(set) var monitoringActive = false
-    private var settingsObservation: AnyCancellable?
     private var activationObserver: NSObjectProtocol?
     private var terminationObserver: NSObjectProtocol?
     private(set) var settingsWindow: NSWindow?
 
     init() {
         tips = TipCoordinator(settings: settings)
-        settingsObservation = settings.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() }
         activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
         ) { [weak self] _ in

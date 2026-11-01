@@ -21,7 +21,10 @@ struct MacTipsApp: App {
     @ObservedObject private var settings = SettingsStore.shared
 
     var body: some Scene {
-        MenuBarExtra("MacTips", systemImage: "capslock", isInserted: $settings.showMenuBarIcon) {
+        MenuBarExtra("MacTips", systemImage: "capslock", isInserted: Binding(
+            get: { settings.showMenuBarIcon },
+            set: { if settings.showMenuBarIcon != $0 { settings.showMenuBarIcon = $0 } }
+        )) {
             MenuBarView(coordinator: appDelegate.coordinator)
                 .environment(\.locale, settings.activeLocale)
         }

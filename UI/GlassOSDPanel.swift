@@ -5,6 +5,7 @@ import SwiftUI
 final class GlassOSDPanel: NSPanel {
     private var host: NSHostingView<TipContentView>?
     private var lastDirection = SlideDirection.down
+    private var animationGeneration = 0
 
     init() {
         super.init(contentRect: CGRect(x: 0, y: 0, width: 190, height: 54),
@@ -22,6 +23,7 @@ final class GlassOSDPanel: NSPanel {
     }
 
     func present(_ tip: TipPresentation, settings: SettingsStore) {
+        animationGeneration += 1
         let root = TipContentView(tip: tip, showCount: settings.showCount)
         if let host { host.rootView = root }
         else {
@@ -45,7 +47,7 @@ final class GlassOSDPanel: NSPanel {
                 NSAnimationContext.runAnimationGroup { context in
                     context.duration = 0.3 * speed
                     context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-                    animator().setFrameOrigin(target)
+                    animator().setFrame(NSRect(origin: target, size: frame.size), display: true)
                     animator().alphaValue = 1
                 }
             }
@@ -62,6 +64,8 @@ final class GlassOSDPanel: NSPanel {
     }
 
     func dismiss(settings: SettingsStore) {
+        animationGeneration += 1
+        let generation = animationGeneration
         let speed = settings.animationSpeed
         guard speed > 0, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { orderOut(nil); return }
         let exit = CGPoint(x: frame.origin.x + lastDirection.offset.dx * 16, y: frame.origin.y + lastDirection.offset.dy * 16)
@@ -69,8 +73,14 @@ final class GlassOSDPanel: NSPanel {
             context.duration = 0.22 * speed
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             animator().alphaValue = 0
-            animator().setFrameOrigin(exit)
-        }, completionHandler: { [weak self] in MainActor.assumeIsolated { self?.orderOut(nil); self?.alphaValue = 1 } })
+            animator().setFrame(NSRect(origin: exit, size: frame.size), display: true)
+        }, completionHandler: { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.animationGeneration == generation else { return }
+                self.orderOut(nil)
+                self.alphaValue = 1
+            }
+        })
     }
 
     private func origin(for settings: SettingsStore) -> CGPoint {

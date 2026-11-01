@@ -2,20 +2,14 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class TipVisibility: ObservableObject {
-    @Published var isVisible = false
-    @Published var animation: Animation?
-}
-
-@MainActor
 final class GlassOSDPanel: NSPanel {
     private let animationDuration = 0.3
     private let animationDistance: CGFloat = 16
     private var host: NSHostingView<TipContentView>?
     private var lastDirection = SlideDirection.down
     private var targetOrigin = CGPoint.zero
-    private var animationGeneration = 0
-    private let tipVisibility = TipVisibility()
+    private var animationTimer: Timer?
+    private var animationActivity: NSObjectProtocol?
 
     init() {
         super.init(contentRect: CGRect(x: 0, y: 0, width: 190, height: 54),
@@ -34,8 +28,8 @@ final class GlassOSDPanel: NSPanel {
     }
 
     func present(_ tip: TipPresentation, settings: SettingsStore) {
-        animationGeneration += 1
-        let root = TipContentView(tip: tip, showCount: settings.showCount, visibility: tipVisibility)
+        stopAnimation()
+        let root = TipContentView(tip: tip, showCount: settings.showCount)
         if let host { host.rootView = root }
         else {
             let hosting = NSHostingView(rootView: root)
@@ -50,63 +44,66 @@ final class GlassOSDPanel: NSPanel {
         targetOrigin = target
         let speed = settings.animationSpeed
         let shouldAnimate = speed > 0 && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        tipVisibility.animation = shouldAnimate ? .easeOut(duration: animationDuration * speed) : nil
-        tipVisibility.isVisible = true
         if !isVisible {
             alphaValue = shouldAnimate ? 0 : 1
-            let start = CGPoint(x: target.x + lastDirection.offset.dx * animationDistance, y: target.y + lastDirection.offset.dy * animationDistance)
-            setFrameOrigin(shouldAnimate ? start : target)
+            setFrameOrigin(shouldAnimate ? displacedOrigin : target)
             orderFrontRegardless()
-            if shouldAnimate {
-                NSAnimationContext.runAnimationGroup { context in
-                    context.duration = animationDuration * speed
-                    context.allowsImplicitAnimation = true
-                    context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-                    animator().setFrame(NSRect(origin: target, size: frame.size), display: true)
-                    animator().alphaValue = 1
-                }
-            }
+        }
+        if shouldAnimate {
+            animate(to: target, alpha: 1, duration: animationDuration * speed, appearing: true)
         } else {
-            if shouldAnimate {
-                NSAnimationContext.runAnimationGroup { context in
-                    context.duration = animationDuration * speed
-                    context.allowsImplicitAnimation = true
-                    context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-                    animator().setFrame(NSRect(origin: target, size: frame.size), display: true)
-                    animator().alphaValue = 1
-                }
-            } else {
-                setFrameOrigin(target)
-                alphaValue = 1
-            }
+            setFrameOrigin(target)
+            alphaValue = 1
         }
     }
 
     func dismiss(settings: SettingsStore) {
-        animationGeneration += 1
-        let generation = animationGeneration
+        stopAnimation()
         let speed = settings.animationSpeed
         guard speed > 0, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
-            tipVisibility.animation = nil
-            tipVisibility.isVisible = false
+            alphaValue = 0
             orderOut(nil)
             return
         }
-        tipVisibility.animation = .easeIn(duration: animationDuration * speed)
-        tipVisibility.isVisible = false
-        let exit = CGPoint(x: targetOrigin.x + lastDirection.offset.dx * animationDistance, y: targetOrigin.y + lastDirection.offset.dy * animationDistance)
-        NSAnimationContext.runAnimationGroup({ context in
-            context.duration = animationDuration * speed
-            context.allowsImplicitAnimation = true
-            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            animator().alphaValue = 0
-            animator().setFrame(NSRect(origin: exit, size: frame.size), display: true)
-        }, completionHandler: { [weak self] in
+        animate(to: displacedOrigin, alpha: 0, duration: animationDuration * speed, appearing: false)
+    }
+
+    private var displacedOrigin: CGPoint {
+        CGPoint(x: targetOrigin.x + lastDirection.offset.dx * animationDistance,
+                y: targetOrigin.y + lastDirection.offset.dy * animationDistance)
+    }
+
+    private func stopAnimation() {
+        animationTimer?.invalidate()
+        animationTimer = nil
+        if let animationActivity { ProcessInfo.processInfo.endActivity(animationActivity) }
+        animationActivity = nil
+    }
+
+    // Explicit window updates also run while this accessory app is inactive. The
+    // timer exists only during a transition and is cancelled by the next tip.
+    private func animate(to destination: CGPoint, alpha: CGFloat, duration: TimeInterval, appearing: Bool) {
+        animationActivity = ProcessInfo.processInfo.beginActivity(
+            options: .userInitiatedAllowingIdleSystemSleep, reason: "Animating a status hint")
+        let start = frame.origin
+        let startAlpha = alphaValue
+        let startedAt = ProcessInfo.processInfo.systemUptime
+        let timer = Timer(timeInterval: 1.0 / 60, repeats: true) { [weak self] timer in
+            guard let self else { timer.invalidate(); return }
             MainActor.assumeIsolated {
-                guard let self, self.animationGeneration == generation else { return }
-                self.orderOut(nil)
+                let progress = min(1, (ProcessInfo.processInfo.systemUptime - startedAt) / duration)
+                let eased = appearing ? 1 - pow(1 - progress, 3) : pow(progress, 3)
+                self.setFrameOrigin(CGPoint(x: start.x + (destination.x - start.x) * eased,
+                                            y: start.y + (destination.y - start.y) * eased))
+                self.alphaValue = startAlpha + (alpha - startAlpha) * eased
+                if progress >= 1 {
+                    self.stopAnimation()
+                    if !appearing { self.orderOut(nil) }
+                }
             }
-        })
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        animationTimer = timer
     }
 
     private func origin(for settings: SettingsStore) -> CGPoint {
@@ -126,7 +123,6 @@ final class GlassOSDPanel: NSPanel {
 struct TipContentView: View {
     let tip: TipPresentation
     let showCount: Bool
-    @ObservedObject var visibility: TipVisibility
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -160,7 +156,5 @@ struct TipContentView: View {
         .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(.white.opacity(0.13), lineWidth: 0.6))
         .animation(reduceMotion ? nil : .spring(duration: 0.28, bounce: 0.12), value: tip.count)
         .fixedSize()
-        .opacity(visibility.isVisible ? 1 : 0)
-        .animation(visibility.animation, value: visibility.isVisible)
     }
 }

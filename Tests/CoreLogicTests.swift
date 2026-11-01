@@ -28,22 +28,27 @@ final class CoreLogicTests: XCTestCase {
     }
 
     @MainActor
-    func testPanelDismissalAnimatesBeforeHiding() async throws {
+    func testInactivePanelDismissalAnimatesBeforeHiding() async throws {
         guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { throw XCTSkip("Reduce Motion is enabled") }
         let suite = "MacTipsTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         let settings = SettingsStore(defaults: defaults)
         settings.animationSpeed = 3
+        NSApp.deactivate()
+        try await Task.sleep(for: .seconds(0.1))
+        XCTAssertFalse(NSApp.isActive)
         let panel = GlassOSDPanel()
         defer { panel.orderOut(nil) }
         panel.present(TipPresentation(kind: .copy), settings: settings)
         try await Task.sleep(for: .seconds(1.1))
+        let settledOrigin = panel.frame.origin
         panel.dismiss(settings: settings)
         try await Task.sleep(for: .seconds(0.4))
         XCTAssertTrue(panel.isVisible)
         XCTAssertGreaterThan(panel.alphaValue, 0)
         XCTAssertLessThan(panel.alphaValue, 1)
+        XCTAssertNotEqual(panel.frame.origin, settledOrigin)
         try await Task.sleep(for: .seconds(0.8))
         XCTAssertFalse(panel.isVisible)
         XCTAssertEqual(panel.alphaValue, 0, accuracy: 0.01)

@@ -1,0 +1,77 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		B00000000000000000000001 /* App */ = {isa = PBXFileSystemSynchronizedRootGroup; path = App; sourceTree = "<group>"; };
+		B00000000000000000000002 /* Core */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Core; sourceTree = "<group>"; };
+		B00000000000000000000003 /* UI */ = {isa = PBXFileSystemSynchronizedRootGroup; path = UI; sourceTree = "<group>"; };
+		B00000000000000000000004 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Resources; sourceTree = "<group>"; };
+		B00000000000000000000005 /* Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Tests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXGroup section */
+		B00000000000000000000010 = {isa = PBXGroup; children = (B00000000000000000000001, B00000000000000000000002, B00000000000000000000003, B00000000000000000000004, B00000000000000000000005, B00000000000000000000011 /* Products */,); sourceTree = "<group>"; };
+		B00000000000000000000011 /* Products */ = {isa = PBXGroup; children = (B00000000000000000000012 /* WinTipsMac.app */, B00000000000000000000013 /* WinTipsMacTests.xctest */,); name = Products; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXFileReference section */
+		B00000000000000000000012 /* WinTipsMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WinTipsMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B00000000000000000000013 /* WinTipsMacTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WinTipsMacTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXBuildFile section */
+/* End PBXBuildFile section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B00000000000000000000020 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		B00000000000000000000021 /* Test Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		A00000000000000000000001 /* WinTipsMac */ = {isa = PBXNativeTarget; buildConfigurationList = B00000000000000000000031; buildPhases = (B00000000000000000000022 /* Sources */, B00000000000000000000020 /* Frameworks */, B00000000000000000000023 /* Resources */,); buildRules = (); dependencies = (); fileSystemSynchronizedGroups = (B00000000000000000000001, B00000000000000000000002, B00000000000000000000003, B00000000000000000000004,); name = WinTipsMac; productName = WinTipsMac; productReference = B00000000000000000000012; productType = "com.apple.product-type.application"; };
+		A00000000000000000000002 /* WinTipsMacTests */ = {isa = PBXNativeTarget; buildConfigurationList = B00000000000000000000032; buildPhases = (B00000000000000000000024 /* Test Sources */, B00000000000000000000021 /* Test Frameworks */, B00000000000000000000025 /* Test Resources */,); buildRules = (); dependencies = (B00000000000000000000040 /* PBXTargetDependency */,); fileSystemSynchronizedGroups = (B00000000000000000000005,); name = WinTipsMacTests; productName = WinTipsMacTests; productReference = B00000000000000000000013; productType = "com.apple.product-type.bundle.unit-test"; };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B00000000000000000000030 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 2700; TargetAttributes = {A00000000000000000000001 = {CreatedOnToolsVersion = 27.2; }; A00000000000000000000002 = {CreatedOnToolsVersion = 27.2; TestTargetID = A00000000000000000000001; }; }; }; buildConfigurationList = B00000000000000000000033; compatibilityVersion = "Xcode 16.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, "zh-Hans", Base,); mainGroup = B00000000000000000000010; productRefGroup = B00000000000000000000011; projectDirPath = ""; projectRoot = ""; targets = (A00000000000000000000001, A00000000000000000000002,); };
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B00000000000000000000023 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		B00000000000000000000025 /* Test Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B00000000000000000000022 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		B00000000000000000000024 /* Test Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		B00000000000000000000041 /* Container proxy */ = {isa = PBXContainerItemProxy; containerPortal = B00000000000000000000030; proxyType = 1; remoteGlobalIDString = A00000000000000000000001; remoteInfo = WinTipsMac; };
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		B00000000000000000000040 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = A00000000000000000000001; targetProxy = B00000000000000000000041; };
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		B00000000000000000000050 /* App Debug */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_IDENTITY = "-"; ENABLE_TESTABILITY = YES; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_LSUIElement = YES; INFOPLIST_KEY_NSPrincipalClass = NSApplication; MACOSX_DEPLOYMENT_TARGET = 26.0; PRODUCT_BUNDLE_IDENTIFIER = io.github.plfjy.WinTipsMac; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_STRICT_CONCURRENCY = complete; SWIFT_VERSION = 6.0; }; name = Debug; };
+		B00000000000000000000051 /* App Release */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_IDENTITY = "-"; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_LSUIElement = YES; INFOPLIST_KEY_NSPrincipalClass = NSApplication; MACOSX_DEPLOYMENT_TARGET = 26.0; PRODUCT_BUNDLE_IDENTIFIER = io.github.plfjy.WinTipsMac; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_STRICT_CONCURRENCY = complete; SWIFT_VERSION = 6.0; }; name = Release; };
+		B00000000000000000000052 /* Tests Debug */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_IDENTITY = "-"; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 26.0; PRODUCT_BUNDLE_IDENTIFIER = io.github.plfjy.WinTipsMacTests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_STRICT_CONCURRENCY = complete; SWIFT_VERSION = 6.0; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WinTipsMac.app/Contents/MacOS/WinTipsMac"; BUNDLE_LOADER = "$(TEST_HOST)"; }; name = Debug; };
+		B00000000000000000000053 /* Tests Release */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_IDENTITY = "-"; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 26.0; PRODUCT_BUNDLE_IDENTIFIER = io.github.plfjy.WinTipsMacTests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_STRICT_CONCURRENCY = complete; SWIFT_VERSION = 6.0; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WinTipsMac.app/Contents/MacOS/WinTipsMac"; BUNDLE_LOADER = "$(TEST_HOST)"; }; name = Release; };
+		B00000000000000000000054 /* Project Debug */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; MACOSX_DEPLOYMENT_TARGET = 26.0; SDKROOT = macosx; SWIFT_VERSION = 6.0; }; name = Debug; };
+		B00000000000000000000055 /* Project Release */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; MACOSX_DEPLOYMENT_TARGET = 26.0; SDKROOT = macosx; SWIFT_VERSION = 6.0; }; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B00000000000000000000031 /* App configs */ = {isa = XCConfigurationList; buildConfigurations = (B00000000000000000000050, B00000000000000000000051,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		B00000000000000000000032 /* Test configs */ = {isa = XCConfigurationList; buildConfigurations = (B00000000000000000000052, B00000000000000000000053,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		B00000000000000000000033 /* Project configs */ = {isa = XCConfigurationList; buildConfigurations = (B00000000000000000000054, B00000000000000000000055,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+	};
+	rootObject = B00000000000000000000030 /* Project object */;
+}

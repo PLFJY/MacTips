@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
-  <title>MacTips menu bar Caps Lock symbol</title>
-  <desc>A monochrome Caps Lock key outline with an upward arrow, on a transparent canvas.</desc>
+  <title>MacTips white Caps Lock symbol</title>
+  <desc>A white Caps Lock key outline with an upward arrow, on a transparent canvas.</desc>
 
   <!-- Caps Lock key outline -->
   <path d="M205 300
@@ -12,10 +12,10 @@
            H277
            C237 796 205 764 205 724
            Z"
-        stroke="#111111" stroke-width="52" stroke-linejoin="round"/>
+        stroke="#FFFFFF" stroke-width="52" stroke-linejoin="round"/>
 
   <!-- Up arrow -->
   <path d="M512 666 V376
            M365 523 L512 376 L659 523"
-        stroke="#111111" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+        stroke="#FFFFFF" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

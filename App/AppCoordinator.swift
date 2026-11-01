@@ -26,21 +26,20 @@ final class AppCoordinator: ObservableObject {
         ) { [weak self] _ in Task { @MainActor in self?.stop() } }
         keyboard.onClipboardShortcut = { [weak self] intent, changeCount in
             guard let self else { return }
+            self.observeCurrentClipboard()
             self.correlator.record(intent, changeCount: changeCount,
                                    at: ProcessInfo.processInfo.systemUptime)
         }
-        keyboard.onPaste = { [weak self] in self?.tips.show(.paste) }
+        keyboard.onPaste = { [weak self] in
+            guard let self else { return }
+            self.observeCurrentClipboard()
+            self.correlator.supersedeWithPaste(at: ProcessInfo.processInfo.systemUptime)
+            self.tips.show(.paste)
+        }
         keyboard.onCapsLock = { [weak self] state in self?.tips.show(.capsLock, state: state) }
         clipboard.onChange = { [weak self] count, hasTypes, time in
             guard let self else { return }
-            let outputs = self.correlator.clipboardChanged(to: count, hasTypes: hasTypes,
-                                                           at: time, showAnyCopy: self.settings.showAnyCopy && self.settings.showCopy)
-            outputs.forEach { output in
-                switch output {
-                case .confirmed(let kind): self.tips.show(kind)
-                case .inferredCopy: self.tips.show(.copy)
-                }
-            }
+            self.handleClipboardChange(count: count, hasTypes: hasTypes, at: time)
         }
         correlator = ClipboardEventCorrelator(initialChangeCount: NSPasteboard.general.changeCount)
         clipboard.start()
@@ -48,6 +47,23 @@ final class AppCoordinator: ObservableObject {
     }
 
     private var correlator: ClipboardEventCorrelator!
+
+    private func observeCurrentClipboard() {
+        let board = NSPasteboard.general
+        handleClipboardChange(count: board.changeCount, hasTypes: !(board.types ?? []).isEmpty,
+                              at: ProcessInfo.processInfo.systemUptime)
+    }
+
+    private func handleClipboardChange(count: Int, hasTypes: Bool, at time: TimeInterval) {
+        let outputs = correlator.clipboardChanged(to: count, hasTypes: hasTypes, at: time,
+                                                  showAnyCopy: settings.showAnyCopy && settings.showCopy)
+        for output in outputs {
+            switch output {
+            case .confirmed(let kind): tips.show(kind)
+            case .inferredCopy: tips.show(.copy)
+            }
+        }
+    }
 
     func refreshPermission() {
         permissionGranted = PermissionsManager.inputMonitoringGranted

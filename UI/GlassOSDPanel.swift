@@ -2,6 +2,12 @@ import AppKit
 import SwiftUI
 
 @MainActor
+final class TipVisibility: ObservableObject {
+    @Published var isVisible = false
+    @Published var animation: Animation?
+}
+
+@MainActor
 final class GlassOSDPanel: NSPanel {
     private let animationDuration = 0.3
     private let animationDistance: CGFloat = 16
@@ -9,6 +15,7 @@ final class GlassOSDPanel: NSPanel {
     private var lastDirection = SlideDirection.down
     private var targetOrigin = CGPoint.zero
     private var animationGeneration = 0
+    private let tipVisibility = TipVisibility()
 
     init() {
         super.init(contentRect: CGRect(x: 0, y: 0, width: 190, height: 54),
@@ -28,7 +35,7 @@ final class GlassOSDPanel: NSPanel {
 
     func present(_ tip: TipPresentation, settings: SettingsStore) {
         animationGeneration += 1
-        let root = TipContentView(tip: tip, showCount: settings.showCount)
+        let root = TipContentView(tip: tip, showCount: settings.showCount, visibility: tipVisibility)
         if let host { host.rootView = root }
         else {
             let hosting = NSHostingView(rootView: root)
@@ -43,6 +50,8 @@ final class GlassOSDPanel: NSPanel {
         targetOrigin = target
         let speed = settings.animationSpeed
         let shouldAnimate = speed > 0 && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        tipVisibility.animation = shouldAnimate ? .easeOut(duration: animationDuration * speed) : nil
+        tipVisibility.isVisible = true
         if !isVisible {
             alphaValue = shouldAnimate ? 0 : 1
             let start = CGPoint(x: target.x + lastDirection.offset.dx * animationDistance, y: target.y + lastDirection.offset.dy * animationDistance)
@@ -77,7 +86,14 @@ final class GlassOSDPanel: NSPanel {
         animationGeneration += 1
         let generation = animationGeneration
         let speed = settings.animationSpeed
-        guard speed > 0, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { orderOut(nil); return }
+        guard speed > 0, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+            tipVisibility.animation = nil
+            tipVisibility.isVisible = false
+            orderOut(nil)
+            return
+        }
+        tipVisibility.animation = .easeIn(duration: animationDuration * speed)
+        tipVisibility.isVisible = false
         let exit = CGPoint(x: targetOrigin.x + lastDirection.offset.dx * animationDistance, y: targetOrigin.y + lastDirection.offset.dy * animationDistance)
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = animationDuration * speed
@@ -89,7 +105,6 @@ final class GlassOSDPanel: NSPanel {
             MainActor.assumeIsolated {
                 guard let self, self.animationGeneration == generation else { return }
                 self.orderOut(nil)
-                self.alphaValue = 1
             }
         })
     }
@@ -111,6 +126,7 @@ final class GlassOSDPanel: NSPanel {
 struct TipContentView: View {
     let tip: TipPresentation
     let showCount: Bool
+    @ObservedObject var visibility: TipVisibility
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -144,5 +160,7 @@ struct TipContentView: View {
         .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(.white.opacity(0.13), lineWidth: 0.6))
         .animation(reduceMotion ? nil : .spring(duration: 0.28, bounce: 0.12), value: tip.count)
         .fixedSize()
+        .opacity(visibility.isVisible ? 1 : 0)
+        .animation(visibility.animation, value: visibility.isVisible)
     }
 }

@@ -27,6 +27,48 @@ final class CoreLogicTests: XCTestCase {
         XCTAssertFalse(monitor.isMonitoring)
     }
 
+    @MainActor
+    func testPanelDismissalAnimatesBeforeHiding() async throws {
+        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { throw XCTSkip("Reduce Motion is enabled") }
+        let suite = "MacTipsTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SettingsStore(defaults: defaults)
+        settings.animationSpeed = 3
+        let panel = GlassOSDPanel()
+        defer { panel.orderOut(nil) }
+        panel.present(TipPresentation(kind: .copy), settings: settings)
+        try await Task.sleep(for: .seconds(1.1))
+        panel.dismiss(settings: settings)
+        try await Task.sleep(for: .seconds(0.4))
+        XCTAssertTrue(panel.isVisible)
+        XCTAssertGreaterThan(panel.alphaValue, 0)
+        XCTAssertLessThan(panel.alphaValue, 1)
+        try await Task.sleep(for: .seconds(0.8))
+        XCTAssertFalse(panel.isVisible)
+        XCTAssertEqual(panel.alphaValue, 0, accuracy: 0.01)
+    }
+
+    @MainActor
+    func testNewTipInterruptsDismissal() async throws {
+        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { throw XCTSkip("Reduce Motion is enabled") }
+        let suite = "MacTipsTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SettingsStore(defaults: defaults)
+        settings.animationSpeed = 2
+        let panel = GlassOSDPanel()
+        defer { panel.orderOut(nil) }
+        panel.present(TipPresentation(kind: .copy), settings: settings)
+        try await Task.sleep(for: .seconds(0.8))
+        panel.dismiss(settings: settings)
+        try await Task.sleep(for: .seconds(0.2))
+        panel.present(TipPresentation(kind: .paste), settings: settings)
+        try await Task.sleep(for: .seconds(0.8))
+        XCTAssertTrue(panel.isVisible)
+        XCTAssertEqual(panel.alphaValue, 1, accuracy: 0.01)
+    }
+
     func testCommandShortcutsAndModifiers() {
         let command: CGEventFlags = .maskCommand
         XCTAssertEqual(KeyboardShortcutClassifier.classify(keyCode: 8, flags: command, isRepeat: false), .copy)

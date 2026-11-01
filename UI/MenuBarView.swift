@@ -2,7 +2,6 @@ import SwiftUI
 
 struct MenuBarView: View {
     @ObservedObject var coordinator: AppCoordinator
-    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Text("app.name").font(.headline)
@@ -22,7 +21,7 @@ struct MenuBarView: View {
             Button("test.capsOn") { coordinator.tips.show(.capsLock, state: true, force: true) }
             Button("test.capsOff") { coordinator.tips.show(.capsLock, state: false, force: true) }
         }
-        Button("settings.title") { openWindow(id: "settings") }
+        Button("settings.title") { coordinator.showSettings() }
         Divider()
         Button("app.quit", role: .destructive) { NSApp.terminate(nil) }
     }

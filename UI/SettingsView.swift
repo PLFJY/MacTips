@@ -1,6 +1,18 @@
 import SwiftUI
 import ServiceManagement
 
+struct SettingsWindowContent: View {
+    let coordinator: AppCoordinator
+    @ObservedObject var settings: SettingsStore
+
+    var body: some View {
+        SettingsView(coordinator: coordinator)
+            .environmentObject(settings)
+            .environment(\.locale, settings.activeLocale)
+            .frame(minWidth: 520, minHeight: 490)
+    }
+}
+
 struct SettingsView: View {
     @ObservedObject var coordinator: AppCoordinator
     @EnvironmentObject private var settings: SettingsStore
@@ -8,12 +20,20 @@ struct SettingsView: View {
     @State private var editorPoint = CGPoint(x: 0.5, y: 0.5)
 
     var body: some View {
-        TabView {
-            clipboardPane.tabItem { Label("settings.clipboard", systemImage: "doc.on.clipboard") }
-            appearancePane.tabItem { Label("settings.appearance", systemImage: "rectangle.on.rectangle") }
-            systemPane.tabItem { Label("settings.system", systemImage: "gear") }
+        VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                Button("app.quit") { NSApp.terminate(nil) }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+            TabView {
+                clipboardPane.tabItem { Label("settings.clipboard", systemImage: "doc.on.clipboard") }
+                appearancePane.tabItem { Label("settings.appearance", systemImage: "rectangle.on.rectangle") }
+                systemPane.tabItem { Label("settings.system", systemImage: "gear") }
+            }
+            .padding(20)
         }
-        .padding(20)
         .alert("settings.launchError", isPresented: Binding(get: { launchError != nil }, set: { if !$0 { launchError = nil } })) {
             Button("common.ok") { launchError = nil }
         } message: { Text(launchError ?? "") }
@@ -134,6 +154,8 @@ struct SettingsView: View {
                 }
             }
             Section("settings.system") {
+                Toggle("settings.showMenuBarIcon", isOn: $settings.showMenuBarIcon)
+                Text("settings.showMenuBarIcon.detail").font(.footnote).foregroundStyle(.secondary)
                 Picker("settings.language", selection: $settings.language) {
                     Text("language.system").tag("system")
                     Text("language.chinese").tag("zh-Hans")

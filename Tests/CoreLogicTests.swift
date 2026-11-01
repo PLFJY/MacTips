@@ -5,6 +5,19 @@ import AppKit
 
 final class CoreLogicTests: XCTestCase {
     @MainActor
+    func testMenuBarVisibilityPersists() {
+        let suite = "MacTipsTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SettingsStore(defaults: defaults)
+        XCTAssertTrue(settings.showMenuBarIcon)
+        settings.showMenuBarIcon = false
+        XCTAssertFalse(SettingsStore(defaults: defaults).showMenuBarIcon)
+        settings.showMenuBarIcon = true
+        XCTAssertTrue(SettingsStore(defaults: defaults).showMenuBarIcon)
+    }
+
+    @MainActor
     func testClipboardMonitorStopsAfterConfirmationWindow() async throws {
         let monitor = ClipboardMonitor()
         XCTAssertFalse(monitor.isMonitoring)

@@ -22,6 +22,7 @@ There are no third-party Swift packages. Settings use `UserDefaults`; login star
 - Copy and Cut check for a clipboard change for up to 1.2 seconds after the shortcut, then stop checking. The app only reads the change count, never clipboard payloads. A simultaneous write by another app can be misattributed.
 - Clipboard changes from context menus and in-app copy buttons do not produce hints; there is no clipboard polling while idle.
 - The OSD uses SwiftUI `.glassEffect` in a nonactivating, click-through `NSPanel`. Reduce Transparency uses an opaque fallback; Reduce Motion disables the slide animation.
+- The menu bar icon can be hidden in Settings. Open MacTips again to bring the existing instance’s Settings forward; use the button in Settings to quit.
 - Input Monitoring is required for global keyboard shortcuts and Caps Lock. The menu bar remains available without it. The app does not request Accessibility, Full Disk Access, or Screen Recording.
 - Num Lock, Scroll Lock, and Insert are not implemented because macOS does not expose reliable universal state for those keys.
 

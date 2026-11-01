@@ -27,6 +27,8 @@
 "settings.permissions" = "Permissions";
 "settings.inputMonitoring" = "Input Monitoring";
 "settings.launchAtLogin" = "Launch at login";
+"settings.showMenuBarIcon" = "Show menu bar icon";
+"settings.showMenuBarIcon.detail" = "When hidden, open MacTips again to show Settings.";
 "settings.language" = "Interface language";
 "settings.launchError" = "Could not update Login Items";
 "position.left" = "Left";

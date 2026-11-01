@@ -1,22 +1,30 @@
 import SwiftUI
+import AppKit
+
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    lazy var coordinator = AppCoordinator()
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        _ = coordinator
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        coordinator.showSettings()
+        return false
+    }
+}
 
 @main
 struct MacTipsApp: App {
-    @StateObject private var coordinator = AppCoordinator()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @ObservedObject private var settings = SettingsStore.shared
 
     var body: some Scene {
-        MenuBarExtra("MacTips", systemImage: "capslock") {
-            MenuBarView(coordinator: coordinator)
-                .environment(\.locale, coordinator.settings.activeLocale)
+        MenuBarExtra("MacTips", systemImage: "capslock", isInserted: $settings.showMenuBarIcon) {
+            MenuBarView(coordinator: appDelegate.coordinator)
+                .environment(\.locale, settings.activeLocale)
         }
         .menuBarExtraStyle(.menu)
-
-        Window("settings.title", id: "settings") {
-            SettingsView(coordinator: coordinator)
-                .environmentObject(coordinator.settings)
-                .environment(\.locale, coordinator.settings.activeLocale)
-                .frame(minWidth: 520, minHeight: 490)
-        }
-        .defaultSize(width: 600, height: 560)
     }
 }

@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import SwiftUI
 
 @MainActor
 final class AppCoordinator: ObservableObject {
@@ -12,6 +13,7 @@ final class AppCoordinator: ObservableObject {
     private var settingsObservation: AnyCancellable?
     private var activationObserver: NSObjectProtocol?
     private var terminationObserver: NSObjectProtocol?
+    private(set) var settingsWindow: NSWindow?
 
     init() {
         tips = TipCoordinator(settings: settings)
@@ -49,6 +51,26 @@ final class AppCoordinator: ObservableObject {
 
     private var correlator: ClipboardEventCorrelator!
 
+    func showSettings() {
+        let window: NSWindow
+        if let existing = settingsWindow {
+            window = existing
+        } else {
+            let root = SettingsWindowContent(coordinator: self, settings: settings)
+            window = NSWindow(contentViewController: NSHostingController(rootView: root))
+            window.title = String(localized: "settings.title", locale: settings.activeLocale)
+            window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
+            window.setContentSize(NSSize(width: 600, height: 560))
+            window.minSize = NSSize(width: 520, height: 490)
+            window.isReleasedWhenClosed = false
+            window.center()
+            settingsWindow = window
+        }
+        window.title = String(localized: "settings.title", locale: settings.activeLocale)
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
+
     private func observeCurrentClipboard() {
         guard !correlator.pending.isEmpty else { return }
         handleClipboardChange(count: NSPasteboard.general.changeCount, at: ProcessInfo.processInfo.systemUptime)
@@ -64,9 +86,12 @@ final class AppCoordinator: ObservableObject {
     }
 
     func refreshPermission() {
-        permissionGranted = PermissionsManager.inputMonitoringGranted
-        if permissionGranted { monitoringActive = keyboard.isRunning || keyboard.start() }
-        else { keyboard.stop(); clipboard.stop(); correlator.supersedeWithPaste(); monitoringActive = false }
+        let granted = PermissionsManager.inputMonitoringGranted
+        if permissionGranted != granted { permissionGranted = granted }
+        let active: Bool
+        if granted { active = keyboard.isRunning || keyboard.start() }
+        else { keyboard.stop(); clipboard.stop(); correlator.supersedeWithPaste(); active = false }
+        if monitoringActive != active { monitoringActive = active }
     }
 
     func requestPermission() {

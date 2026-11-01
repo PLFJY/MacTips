@@ -4,13 +4,15 @@ import Combine
 @MainActor
 final class SettingsStore: ObservableObject {
     static let shared = SettingsStore()
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
+    private var isLoading = true
 
     @Published var showCopy = true { didSet { save() } }
     @Published var showPaste = true { didSet { save() } }
     @Published var showCut = true { didSet { save() } }
     @Published var showCapsLock = true { didSet { save() } }
     @Published var showCount = true { didSet { save() } }
+    @Published var showMenuBarIcon = true { didSet { save() } }
     @Published var displaySeconds = 2.0 { didSet { save() } }
     @Published var animationSpeed = 1.0 { didSet { save() } }
     @Published var horizontal = "center" { didSet { save() } }
@@ -20,12 +22,14 @@ final class SettingsStore: ObservableObject {
     @Published var customPosition: CGPoint? { didSet { save() } }
     var activeLocale: Locale { language == "system" ? .current : Locale(identifier: language) }
 
-    private init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         showCopy = defaults.object(forKey: "showCopy") as? Bool ?? true
         showPaste = defaults.object(forKey: "showPaste") as? Bool ?? true
         showCut = defaults.object(forKey: "showCut") as? Bool ?? true
         showCapsLock = defaults.object(forKey: "showCapsLock") as? Bool ?? true
         showCount = defaults.object(forKey: "showCount") as? Bool ?? true
+        showMenuBarIcon = defaults.object(forKey: "showMenuBarIcon") as? Bool ?? true
         displaySeconds = defaults.object(forKey: "displaySeconds") as? Double ?? 2
         animationSpeed = defaults.object(forKey: "animationSpeed") as? Double ?? 1
         horizontal = defaults.string(forKey: "horizontal") ?? "center"
@@ -34,6 +38,7 @@ final class SettingsStore: ObservableObject {
         language = defaults.string(forKey: "language") ?? "system"
         if let x = defaults.object(forKey: "customX") as? Double,
            let y = defaults.object(forKey: "customY") as? Double { customPosition = CGPoint(x: x, y: y) }
+        isLoading = false
     }
 
     func enabled(_ kind: TipKind) -> Bool {
@@ -46,11 +51,13 @@ final class SettingsStore: ObservableObject {
     }
 
     private func save() {
+        guard !isLoading else { return }
         defaults.set(showCopy, forKey: "showCopy")
         defaults.set(showPaste, forKey: "showPaste")
         defaults.set(showCut, forKey: "showCut")
         defaults.set(showCapsLock, forKey: "showCapsLock")
         defaults.set(showCount, forKey: "showCount")
+        defaults.set(showMenuBarIcon, forKey: "showMenuBarIcon")
         defaults.set(displaySeconds, forKey: "displaySeconds")
         defaults.set(animationSpeed, forKey: "animationSpeed")
         defaults.set(horizontal, forKey: "horizontal")

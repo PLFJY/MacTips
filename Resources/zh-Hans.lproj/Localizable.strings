@@ -27,6 +27,8 @@
 "settings.permissions" = "权限";
 "settings.inputMonitoring" = "输入监控";
 "settings.launchAtLogin" = "登录时启动";
+"settings.showMenuBarIcon" = "显示菜单栏图标";
+"settings.showMenuBarIcon.detail" = "隐藏后，再次打开 MacTips 即可显示设置。";
 "settings.language" = "界面语言";
 "settings.launchError" = "无法更新登录项";
 "position.left" = "左侧";

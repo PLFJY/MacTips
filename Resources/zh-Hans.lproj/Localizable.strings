@@ -57,3 +57,8 @@
 "tip.caps.off" = "大写锁定 已关闭";
 "settings.anyCopy" = "检测其他来源的复制";
 "settings.anyCopy.detail" = "检测右键菜单及复制按钮引起的剪贴板变化。其他应用修改剪贴板也可能触发复制提示。";
+"settings.glass" = "Liquid Glass";
+"settings.glassMaterial" = "背板材质";
+"settings.glass.detail" = "标准材质更突出提示内容，清透材质能更清晰地透出后方画面。系统开启“降低透明度”时使用不透明背景。";
+"glass.regular" = "标准";
+"glass.clear" = "清透";

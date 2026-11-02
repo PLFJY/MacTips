@@ -40,7 +40,7 @@ final class GlassOSDPanel: NSPanel {
 
     func present(_ tip: TipPresentation, settings: SettingsStore) {
         stopAnimation()
-        let root = TipContentView(tip: tip, showCount: settings.showCount)
+        let root = TipContentView(tip: tip, settings: settings)
         if let host { host.rootView = root }
         else {
             let hosting = NSHostingView(rootView: root)
@@ -62,7 +62,7 @@ final class GlassOSDPanel: NSPanel {
             orderFrontRegardless()
         }
         startMouseMonitoring()
-        updateHover(at: NSEvent.mouseLocation)
+        if monitorsMouse { updateHover(at: NSEvent.mouseLocation) }
         if shouldAnimate {
             animate(to: target, alpha: 1, duration: animationDuration * speed, appearing: true)
         } else {
@@ -168,7 +168,7 @@ final class GlassOSDPanel: NSPanel {
                 let eased = appearing ? 1 - pow(1 - progress, 3) : pow(progress, 3)
                 self.setFrameOrigin(CGPoint(x: start.x + (destination.x - start.x) * eased,
                                             y: start.y + (destination.y - start.y) * eased))
-                self.updateHover(at: NSEvent.mouseLocation)
+                if self.monitorsMouse { self.updateHover(at: NSEvent.mouseLocation) }
                 self.presentationOpacity = startAlpha + (alpha - startAlpha) * eased
                 if progress >= 1 {
                     self.stopAnimation()
@@ -196,7 +196,7 @@ final class GlassOSDPanel: NSPanel {
 
 struct TipContentView: View {
     let tip: TipPresentation
-    let showCount: Bool
+    @ObservedObject var settings: SettingsStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -209,7 +209,7 @@ struct TipContentView: View {
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                 .lineLimit(1)
                 .fixedSize()
-            if showCount && tip.kind != .capsLock && tip.count > 1 {
+            if settings.showCount && tip.kind != .capsLock && tip.count > 1 {
                 Text("×\(tip.count)")
                     .font(.system(size: 12, weight: .semibold, design: .rounded).monospacedDigit())
                     .padding(.horizontal, 7).padding(.vertical, 4)
@@ -224,7 +224,7 @@ struct TipContentView: View {
             if NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency {
                 RoundedRectangle(cornerRadius: 20).fill(Color(nsColor: .windowBackgroundColor))
             } else {
-                RoundedRectangle(cornerRadius: 20).fill(.clear).glassEffect(.regular, in: .rect(cornerRadius: 20))
+                RoundedRectangle(cornerRadius: 20).fill(.clear).glassEffect(settings.glassStyle == .clear ? .clear : .regular, in: .rect(cornerRadius: 20))
             }
         }
         .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(.white.opacity(0.13), lineWidth: 0.6))

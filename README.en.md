@@ -22,6 +22,7 @@ There are no third-party Swift packages. Settings use `UserDefaults`; login star
 - Copy and Cut check for a clipboard change for up to 1.2 seconds after the shortcut. A simultaneous write by another app can be misattributed.
 - Optional detection of context-menu and in-app copies checks the change count every 200 ms and merges unsolicited writes within 250 ms. Other applications can cause false copy hints. When disabled, checking occurs only briefly after Copy or Cut shortcuts.
 - Hovering over a hint fades it to 25% opacity; moving away restores it. Clicks still pass through and the hide timer keeps running.
+- Settings → Appearance offers Regular and Clear Liquid Glass backdrop materials, with a preview and a saved selection.
 - The OSD uses SwiftUI `.glassEffect` in a nonactivating, click-through `NSPanel`. Reduce Transparency uses an opaque fallback; Reduce Motion disables the slide animation.
 - The menu bar icon can be hidden in Settings. Open MacTips again to bring the existing instance’s Settings forward; use the button in Settings to quit.
 - Input Monitoring is required for global keyboard shortcuts and Caps Lock. The menu bar remains available without it. The app does not request Accessibility, Full Disk Access, or Screen Recording.

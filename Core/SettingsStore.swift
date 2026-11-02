@@ -1,6 +1,12 @@
 import Foundation
 import Combine
 
+enum TipGlassStyle: String, CaseIterable, Identifiable {
+    case regular, clear
+    var id: String { rawValue }
+    var titleKey: String { "glass.\(rawValue)" }
+}
+
 @MainActor
 final class SettingsStore: ObservableObject {
     static let shared = SettingsStore()
@@ -15,6 +21,7 @@ final class SettingsStore: ObservableObject {
     @Published var showCount = true { didSet { save() } }
     @Published var showMenuBarIcon = true { didSet { save() } }
     @Published var displaySeconds = 2.0 { didSet { save() } }
+    @Published var glassStyle = TipGlassStyle.regular { didSet { save() } }
     @Published var animationSpeed = 1.0 { didSet { save() } }
     @Published var horizontal = "center" { didSet { save() } }
     @Published var vertical = "bottom" { didSet { save() } }
@@ -33,6 +40,7 @@ final class SettingsStore: ObservableObject {
         showCount = defaults.object(forKey: "showCount") as? Bool ?? true
         showMenuBarIcon = defaults.object(forKey: "showMenuBarIcon") as? Bool ?? true
         displaySeconds = defaults.object(forKey: "displaySeconds") as? Double ?? 2
+        glassStyle = TipGlassStyle(rawValue: defaults.string(forKey: "glassStyle") ?? "") ?? .regular
         animationSpeed = defaults.object(forKey: "animationSpeed") as? Double ?? 1
         horizontal = defaults.string(forKey: "horizontal") ?? "center"
         vertical = defaults.string(forKey: "vertical") ?? "bottom"
@@ -62,6 +70,7 @@ final class SettingsStore: ObservableObject {
         defaults.set(showCount, forKey: "showCount")
         defaults.set(showMenuBarIcon, forKey: "showMenuBarIcon")
         defaults.set(displaySeconds, forKey: "displaySeconds")
+        defaults.set(glassStyle.rawValue, forKey: "glassStyle")
         defaults.set(animationSpeed, forKey: "animationSpeed")
         defaults.set(horizontal, forKey: "horizontal")
         defaults.set(vertical, forKey: "vertical")

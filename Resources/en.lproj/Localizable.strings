@@ -57,3 +57,8 @@
 "tip.caps.off" = "Caps Lock Off";
 "settings.anyCopy" = "Detect copies from other sources";
 "settings.anyCopy.detail" = "Checks for clipboard changes from menus and copy buttons. Other apps may also change the clipboard and trigger a copy hint.";
+"settings.glass" = "Liquid Glass";
+"settings.glassMaterial" = "Backdrop material";
+"settings.glass.detail" = "Regular provides more background separation. Clear lets more of the content behind the hint show through. Reduce Transparency uses an opaque background.";
+"glass.regular" = "Regular";
+"glass.clear" = "Clear";

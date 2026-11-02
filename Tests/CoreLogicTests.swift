@@ -38,7 +38,7 @@ final class CoreLogicTests: XCTestCase {
         NSApp.deactivate()
         try await Task.sleep(for: .seconds(0.1))
         XCTAssertFalse(NSApp.isActive)
-        let panel = GlassOSDPanel()
+        let panel = GlassOSDPanel(monitorsMouse: false)
         defer { panel.orderOut(nil) }
         panel.present(TipPresentation(kind: .copy), settings: settings)
         try await Task.sleep(for: .seconds(1.1))
@@ -62,7 +62,7 @@ final class CoreLogicTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suite) }
         let settings = SettingsStore(defaults: defaults)
         settings.animationSpeed = 2
-        let panel = GlassOSDPanel()
+        let panel = GlassOSDPanel(monitorsMouse: false)
         defer { panel.orderOut(nil) }
         panel.present(TipPresentation(kind: .copy), settings: settings)
         try await Task.sleep(for: .seconds(0.8))

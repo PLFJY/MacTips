@@ -64,6 +64,15 @@ struct SettingsView: View {
 
     private var appearancePane: some View {
         Form {
+            Section("settings.glass") {
+                Picker("settings.glassMaterial", selection: $settings.glassStyle) {
+                    ForEach(TipGlassStyle.allCases) { style in
+                        Text(LocalizedStringKey(style.titleKey)).tag(style)
+                    }
+                }
+                Text("settings.glass.detail").font(.footnote).foregroundStyle(.secondary)
+                Button("settings.preview") { coordinator.tips.show(.copy, force: true) }
+            }
             Section("settings.duration") {
                 Slider(value: $settings.displaySeconds, in: 1...5, step: 0.5) {
                     Text("settings.duration")

@@ -10,8 +10,19 @@ final class GlassOSDPanel: NSPanel {
     private var targetOrigin = CGPoint.zero
     private var animationTimer: Timer?
     private var animationActivity: NSObjectProtocol?
+    private let monitorsMouse: Bool
+    private var globalMouseMonitor: Any?
+    private var localMouseMonitor: Any?
+    private var hoverTimer: Timer?
+    private var isHovered = false
+    private var hoverOpacity: CGFloat = 1
+    private var presentationOpacity: CGFloat = 1 {
+        didSet { alphaValue = presentationOpacity * hoverOpacity }
+    }
+    private var animatesHover = true
 
-    init() {
+    init(monitorsMouse: Bool = true) {
+        self.monitorsMouse = monitorsMouse
         super.init(contentRect: CGRect(x: 0, y: 0, width: 190, height: 54),
                    styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         isFloatingPanel = true
@@ -44,16 +55,19 @@ final class GlassOSDPanel: NSPanel {
         targetOrigin = target
         let speed = settings.animationSpeed
         let shouldAnimate = speed > 0 && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        animatesHover = shouldAnimate
         if !isVisible {
-            alphaValue = shouldAnimate ? 0 : 1
+            presentationOpacity = shouldAnimate ? 0 : 1
             setFrameOrigin(shouldAnimate ? displacedOrigin : target)
             orderFrontRegardless()
         }
+        startMouseMonitoring()
+        updateHover(at: NSEvent.mouseLocation)
         if shouldAnimate {
             animate(to: target, alpha: 1, duration: animationDuration * speed, appearing: true)
         } else {
             setFrameOrigin(target)
-            alphaValue = 1
+            presentationOpacity = 1
         }
     }
 
@@ -61,7 +75,7 @@ final class GlassOSDPanel: NSPanel {
         stopAnimation()
         let speed = settings.animationSpeed
         guard speed > 0, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
-            alphaValue = 0
+            presentationOpacity = 0
             orderOut(nil)
             return
         }
@@ -71,6 +85,65 @@ final class GlassOSDPanel: NSPanel {
     private var displacedOrigin: CGPoint {
         CGPoint(x: targetOrigin.x + lastDirection.offset.dx * animationDistance,
                 y: targetOrigin.y + lastDirection.offset.dy * animationDistance)
+    }
+
+    override func orderOut(_ sender: Any?) {
+        stopAnimation()
+        hoverTimer?.invalidate()
+        hoverTimer = nil
+        if let globalMouseMonitor { NSEvent.removeMonitor(globalMouseMonitor) }
+        if let localMouseMonitor { NSEvent.removeMonitor(localMouseMonitor) }
+        globalMouseMonitor = nil
+        localMouseMonitor = nil
+        isHovered = false
+        hoverOpacity = 1
+        super.orderOut(sender)
+    }
+
+    private func startMouseMonitoring() {
+        guard monitorsMouse, globalMouseMonitor == nil, localMouseMonitor == nil else { return }
+        let events: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
+        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: events) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateHover(at: NSEvent.mouseLocation) }
+        }
+        localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: events) { [weak self] event in
+            MainActor.assumeIsolated { self?.updateHover(at: NSEvent.mouseLocation) }
+            return event
+        }
+    }
+
+    // Mouse tracking areas cannot receive events on a click-through window.
+    // Observe movement without consuming it, and animate a separate opacity
+    // factor so hovering cannot cancel or brighten an ongoing dismissal.
+    func updateHover(at point: CGPoint) {
+        let hovered = isVisible && frame.contains(point)
+        guard hovered != isHovered else { return }
+        isHovered = hovered
+        hoverTimer?.invalidate()
+        hoverTimer = nil
+        let destination: CGFloat = hovered ? 0.25 : 1
+        guard animatesHover else {
+            hoverOpacity = destination
+            alphaValue = presentationOpacity * hoverOpacity
+            return
+        }
+        let start = hoverOpacity
+        let startedAt = ProcessInfo.processInfo.systemUptime
+        let timer = Timer(timeInterval: 1.0 / 60, repeats: true) { [weak self] timer in
+            guard let self else { timer.invalidate(); return }
+            MainActor.assumeIsolated {
+                let progress = min(1, (ProcessInfo.processInfo.systemUptime - startedAt) / 0.15)
+                let eased = progress * progress * (3 - 2 * progress)
+                self.hoverOpacity = start + (destination - start) * eased
+                self.alphaValue = self.presentationOpacity * self.hoverOpacity
+                if progress >= 1 {
+                    self.hoverTimer?.invalidate()
+                    self.hoverTimer = nil
+                }
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        hoverTimer = timer
     }
 
     private func stopAnimation() {
@@ -86,7 +159,7 @@ final class GlassOSDPanel: NSPanel {
         animationActivity = ProcessInfo.processInfo.beginActivity(
             options: .userInitiatedAllowingIdleSystemSleep, reason: "Animating a status hint")
         let start = frame.origin
-        let startAlpha = alphaValue
+        let startAlpha = presentationOpacity
         let startedAt = ProcessInfo.processInfo.systemUptime
         let timer = Timer(timeInterval: 1.0 / 60, repeats: true) { [weak self] timer in
             guard let self else { timer.invalidate(); return }
@@ -95,7 +168,8 @@ final class GlassOSDPanel: NSPanel {
                 let eased = appearing ? 1 - pow(1 - progress, 3) : pow(progress, 3)
                 self.setFrameOrigin(CGPoint(x: start.x + (destination.x - start.x) * eased,
                                             y: start.y + (destination.y - start.y) * eased))
-                self.alphaValue = startAlpha + (alpha - startAlpha) * eased
+                self.updateHover(at: NSEvent.mouseLocation)
+                self.presentationOpacity = startAlpha + (alpha - startAlpha) * eased
                 if progress >= 1 {
                     self.stopAnimation()
                     if !appearing { self.orderOut(nil) }

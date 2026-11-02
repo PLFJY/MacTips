@@ -74,6 +74,39 @@ final class CoreLogicTests: XCTestCase {
         XCTAssertEqual(panel.alphaValue, 1, accuracy: 0.01)
     }
 
+    @MainActor
+    func testHoverDimmingPreservesClickThroughAndDismissal() async throws {
+        let suite = "MacTipsTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SettingsStore(defaults: defaults)
+        settings.animationSpeed = 0
+        let panel = GlassOSDPanel(monitorsMouse: false)
+        defer { panel.orderOut(nil) }
+        panel.present(TipPresentation(kind: .copy), settings: settings)
+        let center = CGPoint(x: panel.frame.midX, y: panel.frame.midY)
+        let outside = CGPoint(x: panel.frame.minX - 10, y: panel.frame.minY - 10)
+        panel.updateHover(at: center)
+        XCTAssertEqual(panel.alphaValue, 0.25, accuracy: 0.01)
+        XCTAssertTrue(panel.ignoresMouseEvents)
+        panel.updateHover(at: outside)
+        XCTAssertEqual(panel.alphaValue, 1, accuracy: 0.01)
+        settings.animationSpeed = 1
+        panel.present(TipPresentation(kind: .copy), settings: settings)
+        try await Task.sleep(for: .seconds(0.5))
+        panel.updateHover(at: center)
+        try await Task.sleep(for: .seconds(0.25))
+        XCTAssertEqual(panel.alphaValue, 0.25, accuracy: 0.01)
+        panel.updateHover(at: outside)
+        try await Task.sleep(for: .seconds(0.25))
+        XCTAssertEqual(panel.alphaValue, 1, accuracy: 0.01)
+        panel.updateHover(at: center)
+        panel.dismiss(settings: settings)
+        try await Task.sleep(for: .seconds(0.5))
+        XCTAssertFalse(panel.isVisible)
+        XCTAssertEqual(panel.alphaValue, 0, accuracy: 0.01)
+    }
+
     func testCommandShortcutsAndModifiers() {
         let command: CGEventFlags = .maskCommand
         XCTAssertEqual(KeyboardShortcutClassifier.classify(keyCode: 8, flags: command, isRepeat: false), .copy)
